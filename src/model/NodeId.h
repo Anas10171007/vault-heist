@@ -1,18 +1,14 @@
 #pragma once
 namespace vh {
-inline int& idCounter() {
-    static int counter = 0;
-    return counter;
-}
-inline int nextNodeId() {
-    return ++idCounter();
-}
-inline void reserveNodeId(int id) {
-    if (id > idCounter()) {
-        idCounter() = id;
+struct IdSource {
+    int last = 0;
+    int next() {
+        return ++last;
     }
-}
-inline void resetNodeIds() {
-    idCounter() = 0;
-}
+    void reserve(int id) {
+        if (id > last) {
+            last = id;
+        }
+    }
+};
 }
