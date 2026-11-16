@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "act": 3,
+  "levels": [
+    {
+      "id": "3.2",
+      "title": "Manual repair: single rotation",
+      "mission": "The left side has grown too heavy. Pick the pivot and rotate the vault back into balance.",
+      "structure": "avl",
+      "task": "avl_rotate_single",
+      "seed": 3102,
+      "data": {"source": "explicit", "tree": "30 20 10 # # # #"},
+      "rules": {"rotation": "LL"}
+    }
+  ]
+}

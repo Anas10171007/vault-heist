@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "act": 1,
+  "levels": [
+    {
+      "id": "1.1",
+      "title": "Patrol route",
+      "mission": "The guards patrol the vault in a fixed order. Click the rooms in the order they will be visited.",
+      "structure": "binary",
+      "task": "traversal_click",
+      "seed": 1101,
+      "data": {"source": "explicit", "tree": "50 30 20 # # 40 # # 70 60 # # 80 # #"},
+      "rules": {"traversal": "preorder"}
+    },
+    {
+      "id": "1.2",
+      "title": "Decode the blueprint",
+      "mission": "Rebuild the vault from its preorder and inorder patrol lists.",
+      "structure": "binary",
+      "task": "reconstruct",
+      "seed": 1102,
+      "data": {"source": "generate", "shape": "random", "size": 9, "min": 1, "max": 99},
+      "rules": {"from": "pre_in"}
+    }
+  ]
+}

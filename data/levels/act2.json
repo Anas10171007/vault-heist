@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "act": 2,
+  "levels": [
+    {
+      "id": "2.1",
+      "title": "Search heist",
+      "mission": "Find the target treasure. Every room you enter or compare against raises the alarm.",
+      "structure": "bst",
+      "task": "bst_search",
+      "seed": 2101,
+      "data": {"source": "explicit", "values": [50, 30, 70, 20, 40, 60, 80]},
+      "rules": {"target": 60}
+    }
+  ]
+}

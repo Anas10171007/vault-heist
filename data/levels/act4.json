@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "act": 4,
+  "levels": [
+    {
+      "id": "4.1",
+      "title": "Activate the vault",
+      "mission": "Turn the treasure array into a Max Heap by performing valid swaps, bottom-up.",
+      "structure": "maxheap",
+      "task": "heap_build",
+      "seed": 4101,
+      "data": {"source": "explicit", "values": [3, 9, 2, 7, 5, 8, 1]},
+      "rules": {}
+    }
+  ]
+}
