@@ -20,7 +20,12 @@ file(GLOB_RECURSE BENCH_SOURCES CONFIGURE_DEPENDS bench/*.cpp)
 add_library(model STATIC ${MODEL_SOURCES})
 target_include_directories(model PUBLIC src)
 add_executable(vaultheist src/main.cpp ${GAME_SOURCES})
+target_include_directories(vaultheist PRIVATE src)
 target_link_libraries(vaultheist PRIVATE model SFML::Graphics)
+add_custom_command(TARGET vaultheist POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/data
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data)
 add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests PRIVATE model)
 add_executable(bench ${BENCH_SOURCES})
