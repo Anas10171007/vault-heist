@@ -30,7 +30,9 @@ add_executable(tests ${TEST_SOURCES})
 target_link_libraries(tests PRIVATE model)
 add_executable(bench ${BENCH_SOURCES})
 target_link_libraries(bench PRIVATE model)
-file(GLOB RENDERDEMO_SOURCES CONFIGURE_DEPENDS src/gui/core/*.cpp)
+set(RENDERDEMO_SOURCES
+    src/gui/core/Camera.cpp
+    src/gui/core/Renderer.cpp)
 add_executable(renderdemo tools/render_demo.cpp ${RENDERDEMO_SOURCES})
 target_include_directories(renderdemo PRIVATE src)
 target_link_libraries(renderdemo PRIVATE model SFML::Graphics)

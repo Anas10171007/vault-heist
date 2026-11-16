@@ -41,4 +41,5 @@ Returning resumes its stored playback state. Restart with R when needed.
 
 Headless tests cover timing, pause/resume, stepping, replay reset, speed,
 instant completion, ownership, empty logs and frame partitioning. Manual visual
-verification remains required. Task 0.7 is not marked merged or complete.
+verification remains required. Task 0.7 is integrated into `develop`, but its
+tracker box stays unticked until `develop` is merged into `main`.
