@@ -1,13 +1,41 @@
 #include <SFML/Graphics.hpp>
+#include <iostream>
 #include <optional>
+#include "gui/core/ScreenManager.h"
+#include "gui/core/Theme.h"
+
+using namespace std;
+using namespace vh;
+
 int main() {
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "Vault Heist");
+    sf::RenderWindow window(sf::VideoMode({1100, 720}), "Vault Heist: The Living Vault");
+    window.setFramerateLimit(60);
+    window.setKeyRepeatEnabled(false);
+
+    Theme theme;
+    if (!theme.loadFont("data/fonts/tuffy.ttf")) {
+        cout << "Could not load data/fonts/tuffy.ttf" << endl;
+        return 1;
+    }
+
+    ScreenManager screenManager(theme);
+    sf::Clock clock;
+
     while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()) window.close();
+        while (const optional event = window.pollEvent()) {
+            screenManager.handleEvent(*event, window);
+            if (!window.isOpen()) break;
         }
-        window.clear(sf::Color(20, 20, 40));
+
+        if (!window.isOpen()) break;
+
+        float deltaSeconds = clock.restart().asSeconds();
+        screenManager.update(deltaSeconds);
+
+        window.clear(theme.background);
+        screenManager.draw(window);
         window.display();
     }
+
     return 0;
 }

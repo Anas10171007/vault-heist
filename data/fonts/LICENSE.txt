@@ -1,0 +1,4 @@
+Tuffy font by Thatcher Ulrich.
+
+The SFML example asset manifest distributes this font under the public domain
+(CC0). Source: SFML 3.0.0 examples/asset_licenses.md.

@@ -3,6 +3,7 @@
 #include "model/Node.h"
 #include "model/NodeId.h"
 #include "model/EventLog.h"
+int runAnimationTests();
 int main() {
     using namespace vh;
     int failed = 0;
@@ -76,6 +77,7 @@ int main() {
     target = build();
     check(target.size() == 1 && target.at(0).type == EventType::DONE, "move assignment replaces the events");
     check(std::string(eventName(EventType::HEAP_SORT_COMPLETE)) == "HEAP_SORT_COMPLETE", "event names print");
+    failed += runAnimationTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;
 }
