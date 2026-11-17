@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "act": 4,
+  "levels": [
+    {
+      "id": "4.9",
+      "title": "Unknown field test",
+      "mission": "The loader should ignore fields it does not understand.",
+      "structure": "maxheap",
+      "task": "heap_build",
+      "seed": 4900,
+      "data": {"source": "explicit", "values": [5, 2, 4]},
+      "rules": {},
+      "future_field": {"enabled": true, "numbers": [1, 2, 3]}
+    }
+  ]
+}

@@ -5,6 +5,8 @@
 #include "model/EventLog.h"
 int runUtilityTests();
 int runAnimationTests();
+int runLevelManagerTests();
+int runScoreSystemTests();
 int main() {
     using namespace vh;
     int failed = 0;
@@ -80,6 +82,8 @@ int main() {
     check(std::string(eventName(EventType::HEAP_SORT_COMPLETE)) == "HEAP_SORT_COMPLETE", "event names print");
     failed += runUtilityTests();
     failed += runAnimationTests();
+    failed += runLevelManagerTests();
+    failed += runScoreSystemTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;
 }

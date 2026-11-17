@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "act": 4,
+  "levels": [
+    {
+      "id": "4.8",
+      "mission": "This fixture deliberately has no title.",
+      "structure": "maxheap",
+      "task": "heap_build",
+      "seed": 4800,
+      "data": {"source": "explicit", "values": [5, 2, 4]},
+      "rules": {}
+    }
+  ]
+}
