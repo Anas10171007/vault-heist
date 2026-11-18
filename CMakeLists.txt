@@ -31,7 +31,10 @@ add_custom_command(TARGET vaultheist POST_BUILD
             ${CMAKE_SOURCE_DIR}/data
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data)
 add_executable(tests ${TEST_SOURCES})
-target_link_libraries(tests PRIVATE gamecore)
+target_sources(tests PRIVATE
+    src/gui/core/Renderer.cpp
+    src/gui/widgets/HeapView.cpp)
+target_link_libraries(tests PRIVATE gamecore SFML::Graphics)
 add_executable(bench ${BENCH_SOURCES})
 target_link_libraries(bench PRIVATE model)
 set(RENDERDEMO_SOURCES
@@ -40,3 +43,9 @@ set(RENDERDEMO_SOURCES
 add_executable(renderdemo tools/render_demo.cpp ${RENDERDEMO_SOURCES})
 target_include_directories(renderdemo PRIVATE src)
 target_link_libraries(renderdemo PRIVATE model SFML::Graphics)
+add_executable(heapviewdemo
+    tools/heap_view_demo.cpp
+    src/gui/core/Renderer.cpp
+    src/gui/widgets/HeapView.cpp)
+target_include_directories(heapviewdemo PRIVATE src)
+target_link_libraries(heapviewdemo PRIVATE model SFML::Graphics)
