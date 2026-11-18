@@ -70,7 +70,7 @@ int ScoreSystem::stars() const {
     int result = 1;
     if (stepCount <= optimalStepCount && penaltyCount == 0) {
         result = 3;
-    } else if (stepCount * 4 <= optimalStepCount * 5 && penaltyCount <= 1) {
+    } else if (stepCount <= optimalStepCount * 1.25 && penaltyCount <= 1) {
         result = 2;
     }
 

@@ -9,7 +9,7 @@ brief: a wrong traversal or invalid heap action adds one alarm, a wrong rotation
 adds two alarm and removes 50 points, and a hint lowers the maximum result by
 one star. `finish` only completes a run whose alarm is not full.
 
-Stars use integer comparisons. The two-star check `steps <= 1.25 * optimal` is
-written as `steps * 4 <= optimal * 5`. The reusable `AlarmMeter` widget draws
-the current alarm with a number as well as colour, so colour is not the only
-signal.
+The two-star check is written directly as
+`steps <= optimalSteps * 1.25`, matching the project document. The reusable
+`AlarmMeter` widget draws the current alarm with a number as well as colour, so
+colour is not the only signal.
