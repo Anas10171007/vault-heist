@@ -1,4 +1,7 @@
 #include "model/heap/MaxHeap.h"
+#include "model/heap/HeapValidator.h"
+#include <cassert>
+#include <string>
 
 namespace vh {
 
@@ -88,6 +91,7 @@ EventLog MaxHeap::buildMaxHeap() {
     EventLog events(recording);
     buildMaxHeap(events);
     events.append(Event(EventType::DONE));
+    debugValidate();
     return events;
 }
 
@@ -107,6 +111,7 @@ EventLog MaxHeap::insert(int value) {
                         oldSize, heapSize));
     heapifyUp(heapSize - 1, events);
     events.append(Event(EventType::DONE));
+    debugValidate();
     return events;
 }
 
@@ -133,6 +138,7 @@ bool MaxHeap::extractMax(int& maximum, EventLog& events) {
 EventLog MaxHeap::extractMax(int& maximum) {
     EventLog events(recording);
     if (extractMax(maximum, events)) events.append(Event(EventType::DONE));
+    debugValidate();
     return events;
 }
 
@@ -145,6 +151,7 @@ EventLog MaxHeap::heapSort() {
 
     events.append(Event(EventType::HEAP_SORT_COMPLETE, values.size()));
     events.append(Event(EventType::DONE));
+    debugValidate();
     return events;
 }
 
@@ -192,6 +199,15 @@ void MaxHeap::resetCounters() {
 
 void MaxHeap::setRecordEvents(bool enabled) {
     recording = enabled;
+}
+
+void MaxHeap::debugValidate() const {
+#ifndef NDEBUG
+    string error;
+    bool valid = HeapValidator::validate(*this, error);
+    (void)error;
+    assert(valid);
+#endif
 }
 
 }

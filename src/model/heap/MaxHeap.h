@@ -4,6 +4,8 @@
 
 namespace vh {
 
+class HeapValidator;
+
 class MaxHeap {
 public:
     MaxHeap(bool recordEvents = true);
@@ -27,6 +29,8 @@ public:
     void setRecordEvents(bool enabled);
 
 private:
+    friend class HeapValidator;
+
     DynArray<int> values;
     int heapSize;
     int comparisonCount;
@@ -41,6 +45,7 @@ private:
     void heapifyDown(int index, int activeLimit, int reason, EventLog& events);
     void swapValues(int first, int second, int reason, EventLog& events);
     bool extractMax(int& maximum, EventLog& events);
+    void debugValidate() const;
 };
 
 }

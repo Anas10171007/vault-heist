@@ -8,6 +8,7 @@ int runAnimationTests();
 int runLevelManagerTests();
 int runScoreSystemTests();
 int runMaxHeapTests();
+int runHeapValidatorTests();
 int main() {
     using namespace vh;
     int failed = 0;
@@ -86,6 +87,7 @@ int main() {
     failed += runLevelManagerTests();
     failed += runScoreSystemTests();
     failed += runMaxHeapTests();
+    failed += runHeapValidatorTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;
 }
