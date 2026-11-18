@@ -5,7 +5,7 @@ Fields in order: type, idA, idB, side, key, oldValue, newValue, extra. Unused fi
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | VISIT | node | | | | | | |
 | COMPARE | node | | | searched key | | | -1, 0, 1 (searched key <, =, > node key) |
-| INSERT | new node | parent (0 for root) | LEFT or RIGHT | inserted key | | | |
+| INSERT | new node or heap index | parent (0 for root or heap) | LEFT or RIGHT; NONE for heap | inserted key or heap value | | | |
 | UNLINK | node | parent (0 for root) | LEFT or RIGHT | key of node | | | |
 | SWAP_VALUE | node A | node B | | | value A had | value B had | |
 | ROTATE | pivot (unbalanced node) | node that becomes subtree root | | | | | RotationType |
