@@ -25,7 +25,8 @@ struct CellRegion {
     static constexpr int ACTIVE = 0;
     static constexpr int SORTED = 1;
     static constexpr int SWAPPING = 2;
-    static constexpr int COUNT = 3;
+    static constexpr int SELECTED = 3;
+    static constexpr int COUNT = 4;
 };
 struct Palette {
     static constexpr sf::Color BG{14, 19, 32};

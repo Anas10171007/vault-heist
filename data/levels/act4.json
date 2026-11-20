@@ -4,10 +4,10 @@
   "levels": [
     {
       "id": "4.1",
-      "title": "Seal the breach",
-      "mission": "Repair the single broken parent-child rule and restore the Max Heap.",
+      "title": "Activate the Vault",
+      "mission": "Organise the treasures into a Max Heap using valid parent-child swaps.",
       "structure": "maxheap",
-      "task": "heap_repair",
+      "task": "heap_build",
       "seed": 4711,
       "data": {"source": "explicit", "values": [90, 72, 84, 31, 95, 79, 77]},
       "rules": {}

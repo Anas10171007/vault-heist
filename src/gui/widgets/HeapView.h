@@ -24,6 +24,10 @@ public:
     bool isViolation(int index) const;
     int swappingFirst() const;
     int swappingSecond() const;
+    void setSelectedIndex(int index);
+    int selectedIndex() const;
+    int hitTest(sf::Vector2f point, sf::Vector2f treeOrigin, float treeWidth,
+                sf::Vector2f arrayOrigin, float arrayWidth) const;
 
 private:
     DynArray<int> initialValues;
@@ -33,6 +37,7 @@ private:
     int swapA;
     int swapB;
     float swapProgress;
+    int selected;
 
     sf::Vector2f treePosition(int index, sf::Vector2f origin, float width) const;
     sf::Vector2f arrayPosition(int index, sf::Vector2f origin,

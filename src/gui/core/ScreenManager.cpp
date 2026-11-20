@@ -1,6 +1,6 @@
 #include "gui/core/ScreenManager.h"
 #include "gui/screens/StubScreen.h"
-#include "gui/screens/AnimationDemoScreen.h"
+#include "gui/screens/HeapLevelScreen.h"
 
 namespace vh {
 
@@ -28,7 +28,7 @@ ScreenManager::ScreenManager(Theme& theme) {
     briefing->addButton("Campaign Map", ScreenId::CAMPAIGN_MAP);
     screens[ScreenId::BRIEFING] = briefing;
 
-    screens[ScreenId::LEVEL_PLAY] = new AnimationDemoScreen(theme);
+    screens[ScreenId::LEVEL_PLAY] = new HeapLevelScreen(theme);
 
     StubScreen* result = new StubScreen(theme, "Result", "Stars, steps, and penalties will appear here");
     result->addButton("Retry", ScreenId::LEVEL_PLAY);
@@ -92,6 +92,7 @@ void ScreenManager::draw(sf::RenderWindow& window) {
 void ScreenManager::show(int screenId) {
     if (screenId >= 0 && screenId < ScreenId::COUNT) {
         activeScreen = screenId;
+        screens[activeScreen]->onShow();
     }
 }
 

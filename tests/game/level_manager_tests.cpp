@@ -25,7 +25,7 @@ int runLevelManagerTests() {
           "BST level keeps values and target");
 
     const LevelDef* heap = manager.load("4.1");
-    check(heap != nullptr && heap->task == "heap_repair" && heap->data.values[4] == 95,
+    check(heap != nullptr && heap->task == "heap_build" && heap->data.values[4] == 95,
           "Act 4 sample is found by id");
     check(manager.load("9.9") == nullptr, "unknown level id returns null");
 

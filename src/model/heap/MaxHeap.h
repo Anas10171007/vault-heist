@@ -15,6 +15,7 @@ public:
     EventLog insert(int value);
     EventLog extractMax(int& maximum);
     EventLog heapSort();
+    EventLog playerSwap(int first, int second);
 
     bool isMaxHeap() const;
     bool isSortedAscending() const;

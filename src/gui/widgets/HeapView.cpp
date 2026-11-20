@@ -8,7 +8,8 @@ using namespace std;
 namespace vh {
 
 HeapView::HeapView()
-    : initialHeapSize(0), heapSize(0), swapA(-1), swapB(-1), swapProgress(0) {}
+    : initialHeapSize(0), heapSize(0), swapA(-1), swapB(-1), swapProgress(0),
+      selected(-1) {}
 
 void HeapView::load(const DynArray<int>& startValues, int startHeapSize) {
     initialValues = startValues;
@@ -24,6 +25,7 @@ void HeapView::reset() {
     swapA = -1;
     swapB = -1;
     swapProgress = 0;
+    selected = -1;
 }
 
 void HeapView::onEvent(const Event& event, float progress) {
@@ -134,7 +136,8 @@ void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth
         sf::Vector2f normal = treePosition(index, treeOrigin, treeWidth);
         sf::Vector2f position = movingPosition(index, normal, treeFirst, treeSecond);
         int state = NodeState::NORMAL;
-        if (isViolation(index)) state = NodeState::VIOLATION;
+        if (index == selected) state = NodeState::TARGET;
+        else if (isViolation(index)) state = NodeState::VIOLATION;
         else if (index == swapA || index == swapB) state = NodeState::VISITED;
         renderer.drawNode(position, to_string(values[index]), state);
         if (index == 0) {
@@ -174,6 +177,7 @@ void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth
 
         sf::Vector2f normal = arrayPosition(index, arrayOrigin, cellsPerRow, gap);
         sf::Vector2f position = movingPosition(index, normal, arrayFirst, arraySecond);
+        if (index == selected) region = CellRegion::SELECTED;
         if (index == swapA || index == swapB) region = CellRegion::SWAPPING;
         renderer.drawArrayCell(position, index, values[index], region);
     }
@@ -184,5 +188,36 @@ int HeapView::activeSize() const { return heapSize; }
 int HeapView::valueAt(int index) const { return values[index]; }
 int HeapView::swappingFirst() const { return swapA; }
 int HeapView::swappingSecond() const { return swapB; }
+
+void HeapView::setSelectedIndex(int index) {
+    if (index >= 0 && index < heapSize) selected = index;
+    else selected = -1;
+}
+
+int HeapView::selectedIndex() const { return selected; }
+
+int HeapView::hitTest(sf::Vector2f point, sf::Vector2f treeOrigin, float treeWidth,
+                      sf::Vector2f arrayOrigin, float arrayWidth) const {
+    float gap = 8.f;
+    int cellsPerRow = static_cast<int>((arrayWidth + gap) /
+                                      (Renderer::CELL_W + gap));
+    if (cellsPerRow < 1) cellsPerRow = 1;
+
+    for (int index = 0; index < heapSize; index++) {
+        sf::Vector2f cell = arrayPosition(index, arrayOrigin, cellsPerRow, gap);
+        if (point.x >= cell.x - Renderer::CELL_W / 2.f &&
+            point.x <= cell.x + Renderer::CELL_W / 2.f &&
+            point.y >= cell.y - Renderer::CELL_H / 2.f &&
+            point.y <= cell.y + Renderer::CELL_H / 2.f) {
+            return index;
+        }
+    }
+
+    for (int index = 0; index < heapSize; index++) {
+        sf::Vector2f node = treePosition(index, treeOrigin, treeWidth);
+        if ((point - node).length() <= Renderer::NODE_HIT_RADIUS) return index;
+    }
+    return -1;
+}
 
 }

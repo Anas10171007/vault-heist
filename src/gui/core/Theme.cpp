@@ -39,4 +39,8 @@ sf::RectangleShape Theme::makeButton(sf::Vector2f position, sf::Vector2f size) c
     return result;
 }
 
+const sf::Font& Theme::getFont() const {
+    return font;
+}
+
 }

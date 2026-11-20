@@ -155,6 +155,18 @@ EventLog MaxHeap::heapSort() {
     return events;
 }
 
+EventLog MaxHeap::playerSwap(int first, int second) {
+    EventLog events(recording);
+    if (first < 0 || first >= heapSize || second < 0 || second >= heapSize ||
+        first == second) {
+        return events;
+    }
+
+    swapValues(first, second, HeapReason::PLAYER, events);
+    events.append(Event(EventType::DONE));
+    return events;
+}
+
 bool MaxHeap::isMaxHeap() const {
     for (int index = 0; index < heapSize / 2; index++) {
         int left = leftIndex(index);

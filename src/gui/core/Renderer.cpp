@@ -99,6 +99,11 @@ void Renderer::drawArrayCell(sf::Vector2f pos, int index, int value, int region)
         edge = Palette::INK;
         ink = Palette::INK;
         thickness = 4.f;
+    } else if (region == CellRegion::SELECTED) {
+        fill = Palette::TARGET;
+        edge = sf::Color::White;
+        ink = Palette::INK;
+        thickness = 4.f;
     }
     cellShape.setSize({CELL_W, CELL_H});
     cellShape.setOrigin({CELL_W / 2.f, CELL_H / 2.f});

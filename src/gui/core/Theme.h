@@ -14,6 +14,7 @@ public:
     sf::Text makeLabel(const string& text, unsigned int size, sf::Color color) const;
     sf::RectangleShape makePanel(sf::Vector2f position, sf::Vector2f size) const;
     sf::RectangleShape makeButton(sf::Vector2f position, sf::Vector2f size) const;
+    const sf::Font& getFont() const;
 
 private:
     sf::Font font;
