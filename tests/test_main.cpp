@@ -11,6 +11,7 @@ int runMaxHeapTests();
 int runHeapValidatorTests();
 int runHeapViewTests();
 int runBinaryTreeTests();
+int runBSTTests();
 int main() {
     using namespace vh;
     int failed = 0;
@@ -92,6 +93,7 @@ int main() {
     failed += runHeapValidatorTests();
     failed += runHeapViewTests();
     failed += runBinaryTreeTests();
+    failed += runBSTTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;
 }

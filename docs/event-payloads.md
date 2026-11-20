@@ -22,3 +22,5 @@ Fields in order: type, idA, idB, side, key, oldValue, newValue, extra. Unused fi
 | HEAP_SIZE_CHANGE | | | | | old size | new size | |
 | HEAP_SORT_COMPLETE | array length | | | | | | |
 | DONE | | | | | | | |
+
+UNLINK also stores the bypassed child id in `extra` (0 for a leaf) so undo can relink it.
