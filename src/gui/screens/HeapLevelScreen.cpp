@@ -209,6 +209,7 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
         else if (key->code == sf::Keyboard::Key::Num5) loadLevel("4.5");
         else if (key->code == sf::Keyboard::Key::R) resetLevel();
         else if (key->code == sf::Keyboard::Key::Z) undoOperation();
+        else if (key->code == sf::Keyboard::Key::P) { animation.restart(); animation.play(); }
         else if (key->code == sf::Keyboard::Key::Space) {
             if (animation.isPlaying()) animation.pause();
             else animation.play();
@@ -383,7 +384,7 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
         drawButton(window, renderer, continueButton(), "View Result");
     }
     drawButton(window, renderer, menuButton(), "Main Menu");
-    renderer.drawText("R reset | Z undo | Space pause | arrows step",
+    renderer.drawText("R reset | Z undo | P replay | Space pause | arrows step",
                       {550.f, 692.f}, 13, Palette::MUTED, true);
 }
 

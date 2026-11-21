@@ -27,6 +27,9 @@ private:
     bool heapMode;
     string message;
     DynArray<PlayerAction> history;
+    float viewZoom;
+    float viewX;
+    float viewY;
     sf::FloatRect nextButton() const;
     sf::FloatRect hintButton() const;
     sf::FloatRect resetButton() const;

@@ -2,10 +2,12 @@
 #include "game/LevelPlayFactory.h"
 #include "gui/core/Renderer.h"
 #include "gui/core/ScreenId.h"
+#include "game/tree/TreeLayout.h"
 
 namespace vh {
 LevelScreen::LevelScreen(Theme& sharedTheme, GameSession& sharedSession)
-    : theme(sharedTheme), session(sharedSession), heapScreen(sharedTheme), logic(nullptr), heapMode(false) {
+    : theme(sharedTheme), session(sharedSession), heapScreen(sharedTheme), logic(nullptr), heapMode(false),
+      viewZoom(1.f), viewX(0.f), viewY(0.f) {
     const char* paths[] = {"data/levels", "../data/levels", "../../data/levels"};
     for (const char* path : paths) if (levels.loadAll(path)) break;
 }
@@ -19,6 +21,7 @@ sf::FloatRect LevelScreen::exitButton() const { return {{810.f, 580.f}, {240.f, 
 void LevelScreen::onShow() {
     delete logic;
     logic = nullptr;
+    viewZoom = 1.f; viewX = 0.f; viewY = 0.f;
     const LevelDef* level = levels.load(session.selectedLevel);
     heapMode = level && level->act == 4;
     if (!level) { message = "Level data unavailable."; return; }
@@ -69,6 +72,12 @@ int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     if (key) {
         if (key->code == sf::Keyboard::Key::N) applyNext();
         else if (key->code == sf::Keyboard::Key::Z) undo();
+        else if (key->code == sf::Keyboard::Key::Q && viewZoom > 0.55f) viewZoom -= 0.1f;
+        else if (key->code == sf::Keyboard::Key::E && viewZoom < 1.8f) viewZoom += 0.1f;
+        else if (key->code == sf::Keyboard::Key::A) viewX -= 20.f;
+        else if (key->code == sf::Keyboard::Key::D) viewX += 20.f;
+        else if (key->code == sf::Keyboard::Key::W) viewY -= 20.f;
+        else if (key->code == sf::Keyboard::Key::S) viewY += 20.f;
         else if (key->code == sf::Keyboard::Key::H && logic) {
             PlayResult result = logic->hint();
             message = result.message.empty() ? "Hint highlighted the next action." : result.message;
@@ -102,8 +111,33 @@ void LevelScreen::draw(sf::RenderWindow& window) {
     const LevelDef& level = logic->definition();
     renderer.drawText(level.id + "  " + level.title, {70.f, 75.f}, 26, Palette::TARGET, false);
     renderer.drawText(level.mission, {70.f, 125.f}, 15, Palette::TEXT, false);
-    renderer.drawText("MODEL STATE", {400.f, 210.f}, 18, Palette::MUTED, true);
-    renderer.drawText(logic->tree().serialize(), {400.f, 260.f}, 14, Palette::TEXT, true);
+    renderer.drawText("MODEL STATE", {400.f, 175.f}, 18, Palette::MUTED, true);
+    TreeLayout layout = TreeLayout::compute(logic->tree(), 70.f, 82.f);
+    float centre = (layout.bounds().minX + layout.bounds().maxX) / 2.f;
+    DynArray<const TreeNode*> stack;
+    if (logic->tree().root()) stack.push(logic->tree().root());
+    while (!stack.empty()) {
+        const TreeNode* node = stack.pop();
+        sf::Vector2f from(400.f + viewX + (layout.xOf(node->id) - centre) * viewZoom,
+                          235.f + viewY + layout.yOf(node->id) * viewZoom);
+        if (node->left) {
+            sf::Vector2f to(400.f + viewX + (layout.xOf(node->left->id) - centre) * viewZoom,
+                            235.f + viewY + layout.yOf(node->left->id) * viewZoom);
+            renderer.drawEdge(from, to, false); stack.push(node->left);
+        }
+        if (node->right) {
+            sf::Vector2f to(400.f + viewX + (layout.xOf(node->right->id) - centre) * viewZoom,
+                            235.f + viewY + layout.yOf(node->right->id) * viewZoom);
+            renderer.drawEdge(from, to, false); stack.push(node->right);
+        }
+    }
+    for (int i = 0; i < layout.size(); i++) {
+        const LayoutPoint& point = layout.at(i);
+        const TreeNode* node = logic->tree().findById(point.nodeId);
+        renderer.drawNode({400.f + viewX + (point.x - centre) * viewZoom,
+                           235.f + viewY + point.y * viewZoom},
+                          node ? to_string(node->value) : "?", 0);
+    }
     renderer.drawText(message, {400.f, 350.f}, 14,
                       logic->isFailed() ? Palette::VIOLATION : Palette::WARNING, true);
     alarm.draw(window, renderer, logic->score(), {820.f, 170.f}, 220.f);
@@ -116,7 +150,7 @@ void LevelScreen::draw(sf::RenderWindow& window) {
         renderer.drawText(labels[index], buttons[index].position + buttons[index].size / 2.f,
                           17, Palette::TEXT, true);
     }
-    if (session.showHelp) renderer.drawText("N next | H hint | Z undo | R reset | Esc menu",
+    if (session.showHelp) renderer.drawText("N next | H hint | Z undo | Q/E zoom | WASD pan",
                                             {400.f, 625.f}, 13, Palette::MUTED, true);
 }
 }
