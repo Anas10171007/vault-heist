@@ -48,6 +48,7 @@ BST::OpResult BST::insert(int key) {
     }
     result.events.append(Event(EventType::INSERT, node->id, parent == nullptr ? 0 : parent->id, side, key));
     result.ok = true;
+    afterInsert(node, result.events);
     result.events.append(Event(EventType::DONE));
     return result;
 }
@@ -89,6 +90,7 @@ BST::OpResult BST::deleteKey(int key) {
         result.events.append(Event(EventType::DONE));
         return result;
     }
+    BSTNode* removedParent = nullptr;
     if (target->left != nullptr && target->right != nullptr) {
         BSTNode* successorNode = subtreeMin(static_cast<BSTNode*>(target->right));
         result.events.append(Event(EventType::HIGHLIGHT_SUBTREE, successorNode->id, 0, Side::NONE, 0, 0, 0,
@@ -99,11 +101,14 @@ BST::OpResult BST::deleteKey(int key) {
         successorNode->setKey(oldTargetKey);
         result.events.append(Event(EventType::SWAP_VALUE, target->id, successorNode->id, Side::NONE, 0,
                                    oldTargetKey, oldSuccessorKey));
+        removedParent = static_cast<BSTNode*>(successorNode->parent);
         detachNode(successorNode, result.events);
     } else {
+        removedParent = static_cast<BSTNode*>(target->parent);
         detachNode(target, result.events);
     }
     result.ok = true;
+    afterRemoval(removedParent, result.events);
     result.events.append(Event(EventType::DONE));
     return result;
 }
@@ -292,6 +297,16 @@ void BST::detachNode(BSTNode* node, EventLog& events) {
     events.append(Event(EventType::UNLINK, node->id, parent == nullptr ? 0 : parent->id, side, node->key,
                         0, 0, child == nullptr ? 0 : child->id));
     delete node;
+}
+
+void BST::afterInsert(BSTNode* inserted, EventLog& events) {
+    (void)inserted;
+    (void)events;
+}
+
+void BST::afterRemoval(BSTNode* parentOfRemoved, EventLog& events) {
+    (void)parentOfRemoved;
+    (void)events;
 }
 
 }

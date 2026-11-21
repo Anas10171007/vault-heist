@@ -24,3 +24,4 @@ Fields in order: type, idA, idB, side, key, oldValue, newValue, extra. Unused fi
 | DONE | | | | | | | |
 
 UNLINK also stores the bypassed child id in `extra` (0 for a leaf) so undo can relink it.
+ROTATE also stores the pre-rotation parent id of the rotated subtree in `key` (0 for a root).

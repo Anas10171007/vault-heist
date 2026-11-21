@@ -12,6 +12,7 @@ int runHeapValidatorTests();
 int runHeapViewTests();
 int runBinaryTreeTests();
 int runBSTTests();
+int runAVLTests();
 int runHeapBuildLevelTests();
 int main() {
     using namespace vh;
@@ -95,6 +96,7 @@ int main() {
     failed += runHeapViewTests();
     failed += runBinaryTreeTests();
     failed += runBSTTests();
+    failed += runAVLTests();
     failed += runHeapBuildLevelTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;

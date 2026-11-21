@@ -67,6 +67,9 @@ protected:
     BSTNode* subtreeMin(BSTNode* node) const;
     BSTNode* subtreeMax(BSTNode* node) const;
     void detachNode(BSTNode* node, EventLog& events);
+
+    virtual void afterInsert(BSTNode* inserted, EventLog& events);
+    virtual void afterRemoval(BSTNode* parentOfRemoved, EventLog& events);
 };
 
 }
