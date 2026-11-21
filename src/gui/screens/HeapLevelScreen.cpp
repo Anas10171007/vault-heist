@@ -31,25 +31,44 @@ bool HeapLevelScreen::loadLevel(const string& id) {
     return false;
 }
 
+bool HeapLevelScreen::selectLevel(const string& id) { return loadLevel(id); }
+const ScoreSystem& HeapLevelScreen::score() const { return currentScore(); }
+
 bool HeapLevelScreen::isBuildLevel() const {
     return level.task == "heap_build";
 }
 
+bool HeapLevelScreen::isRepairLevel() const {
+    return level.task == "heap_repair";
+}
+
+bool HeapLevelScreen::isOperationLevel() const {
+    return level.task == "heap_extract" || level.task == "heap_race" ||
+           level.task == "heap_sort";
+}
+
 bool HeapLevelScreen::currentComplete() const {
-    return isBuildLevel() ? buildLogic.isComplete() : repairLogic.isComplete();
+    if (isBuildLevel()) return buildLogic.isComplete();
+    if (isRepairLevel()) return repairLogic.isComplete();
+    return operationLogic.isComplete();
 }
 
 bool HeapLevelScreen::currentFailed() const {
-    return isBuildLevel() ? buildLogic.isFailed() : repairLogic.isFailed();
+    if (isBuildLevel()) return buildLogic.isFailed();
+    if (isRepairLevel()) return repairLogic.isFailed();
+    return operationLogic.isFailed();
 }
 
 const ScoreSystem& HeapLevelScreen::currentScore() const {
-    return isBuildLevel() ? buildLogic.score() : repairLogic.score();
+    if (isBuildLevel()) return buildLogic.score();
+    if (isRepairLevel()) return repairLogic.score();
+    return operationLogic.score();
 }
 
 void HeapLevelScreen::copyCurrentValues(DynArray<int>& output) const {
     if (isBuildLevel()) buildLogic.copyValues(output);
-    else repairLogic.copyValues(output);
+    else if (isRepairLevel()) repairLogic.copyValues(output);
+    else operationLogic.copyValues(output);
 }
 
 void HeapLevelScreen::resetLevel() {
@@ -62,11 +81,18 @@ void HeapLevelScreen::resetLevel() {
     if (isBuildLevel()) {
         buildLogic.load(level.data.values);
         message = "Select a smaller parent, then its largest child.";
-    } else {
+    } else if (isRepairLevel()) {
         repairLogic.load(level.data.values);
         message = "Select a BAD node, then choose a heapify direction.";
+    } else {
+        operationLogic.load(level.data.values, level.task);
+        message = level.task == "heap_sort" ? "Run Heap Sort to secure the vault."
+                                             : "Extract the current maximum.";
     }
-    heapView.load(level.data.values, level.data.values.size());
+    DynArray<int> values;
+    copyCurrentValues(values);
+    int active = isOperationLevel() ? operationLogic.activeSize() : values.size();
+    heapView.load(values, active);
 }
 
 void HeapLevelScreen::onShow() {
@@ -148,12 +174,40 @@ void HeapLevelScreen::chooseDirection(int direction) {
                                        : "Valid repair. Check the remaining BAD nodes.";
 }
 
+void HeapLevelScreen::performOperation() {
+    DynArray<int> before;
+    operationLogic.copyValues(before);
+    EventLog events = operationLogic.perform();
+    if (events.empty()) return;
+    heapView.load(before, operationLogic.activeSize() +
+                          (level.task == "heap_sort" ? before.size() : 1));
+    animation.load(events);
+    animation.play();
+    waitingForAnimation = true;
+    message = level.task == "heap_sort" ? "Heap Sort running..." : "Extracting maximum...";
+}
+
+void HeapLevelScreen::undoOperation() {
+    if (!isOperationLevel() || waitingForAnimation || !operationLogic.undo()) {
+        message = "Nothing to undo.";
+        return;
+    }
+    DynArray<int> restored;
+    operationLogic.copyValues(restored);
+    heapView.load(restored, operationLogic.activeSize());
+    message = "Last operation undone.";
+}
+
 int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     const sf::Event::KeyPressed* key = event.getIf<sf::Event::KeyPressed>();
     if (key != nullptr) {
         if (key->code == sf::Keyboard::Key::Num1) loadLevel("4.1");
         else if (key->code == sf::Keyboard::Key::Num2) loadLevel("4.2");
+        else if (key->code == sf::Keyboard::Key::Num3) loadLevel("4.3");
+        else if (key->code == sf::Keyboard::Key::Num4) loadLevel("4.4");
+        else if (key->code == sf::Keyboard::Key::Num5) loadLevel("4.5");
         else if (key->code == sf::Keyboard::Key::R) resetLevel();
+        else if (key->code == sf::Keyboard::Key::Z) undoOperation();
         else if (key->code == sf::Keyboard::Key::Space) {
             if (animation.isPlaying()) animation.pause();
             else animation.play();
@@ -174,6 +228,10 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
         resetLevel();
         return ScreenId::NONE;
     }
+    if (isOperationLevel() && undoButton().contains(point)) {
+        undoOperation();
+        return ScreenId::NONE;
+    }
     if (menuButton().contains(point)) return ScreenId::MENU;
     if (levelLoaded && currentComplete() && continueButton().contains(point)) {
         return ScreenId::RESULT;
@@ -182,11 +240,15 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
     bool replayAtEnd = animation.completedCount() == animation.eventCount();
     bool canAct = levelLoaded && !currentComplete() && !currentFailed() &&
                   !waitingForAnimation && replayAtEnd;
-    if (!isBuildLevel() && canAct && upButton().contains(point)) {
+    if (isOperationLevel() && canAct && actionButton().contains(point)) {
+        performOperation();
+        return ScreenId::NONE;
+    }
+    if (isRepairLevel() && canAct && upButton().contains(point)) {
         chooseDirection(HeapDirection::UP);
         return ScreenId::NONE;
     }
-    if (!isBuildLevel() && canAct && downButton().contains(point)) {
+    if (isRepairLevel() && canAct && downButton().contains(point)) {
         chooseDirection(HeapDirection::DOWN);
         return ScreenId::NONE;
     }
@@ -204,8 +266,9 @@ void HeapLevelScreen::update(float seconds) {
         animation.completedCount() == animation.eventCount()) {
         waitingForAnimation = false;
         if (currentComplete()) {
-            message = isBuildLevel() ? "Vault activated. Max Heap complete."
-                                     : "Security locks repaired. Max Heap restored.";
+            if (isBuildLevel()) message = "Vault activated. Max Heap complete.";
+            else if (isRepairLevel()) message = "Security locks repaired. Max Heap restored.";
+            else message = "Vault cleared. Sorted sequence complete.";
         } else {
             message = isBuildLevel() ? "Valid swap. Repair the next violation."
                                      : "Valid repair. Select the next BAD node.";
@@ -219,6 +282,14 @@ sf::FloatRect HeapLevelScreen::upButton() const {
 
 sf::FloatRect HeapLevelScreen::downButton() const {
     return {{950.f, 448.f}, {105.f, 38.f}};
+}
+
+sf::FloatRect HeapLevelScreen::actionButton() const {
+    return {{835.f, 448.f}, {220.f, 38.f}};
+}
+
+sf::FloatRect HeapLevelScreen::undoButton() const {
+    return {{835.f, 400.f}, {220.f, 38.f}};
 }
 
 sf::FloatRect HeapLevelScreen::resetButton() const {
@@ -250,7 +321,7 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
         heapView.draw(renderer, {40.f, 105.f}, 750.f, {40.f, 520.f}, 750.f);
         renderer.drawText(level.id, {835.f, 68.f}, 18, Palette::TARGET, false);
         renderer.drawText(level.title, {835.f, 96.f}, 16, Palette::TEXT, false);
-        renderer.drawText("Press 1: Build  |  2: Repair", {835.f, 126.f},
+        renderer.drawText("Levels: 1 Build  2 Repair  3-5 Ops", {835.f, 126.f},
                           12, Palette::MUTED, false);
 
         if (isBuildLevel()) {
@@ -262,10 +333,20 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
                               13, Palette::TEXT, false);
             renderer.drawText("3. Remove every BAD marker", {835.f, 234.f},
                               13, Palette::TEXT, false);
-        } else {
+        } else if (isRepairLevel()) {
             renderer.drawText("Restore the disturbed heap.", {835.f, 158.f},
                               15, Palette::TEXT, false);
             renderer.drawText("1. Select a BAD node", {835.f, 188.f},
+                              13, Palette::TEXT, false);
+        } else {
+            renderer.drawText(level.task == "heap_sort" ? "Complete the full Heap Sort."
+                                                         : "Extract maxima into sorted order.",
+                              {835.f, 158.f}, 15, Palette::TEXT, false);
+            renderer.drawText("Operate on the active heap", {835.f, 188.f},
+                              13, Palette::TEXT, false);
+            renderer.drawText("Sorted cells lock at the end", {835.f, 211.f},
+                              13, Palette::TEXT, false);
+            renderer.drawText("Z or Undo restores a snapshot", {835.f, 234.f},
                               13, Palette::TEXT, false);
             renderer.drawText("2. Choose Up or Down", {835.f, 211.f},
                               13, Palette::TEXT, false);
@@ -287,16 +368,21 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
         renderer.drawText(message, {835.f, 125.f}, 13, Palette::TEXT, false);
     }
 
-    if (levelLoaded && !isBuildLevel() && !currentComplete()) {
+    if (levelLoaded && isRepairLevel() && !currentComplete()) {
         drawButton(window, renderer, upButton(), "Heapify Up");
         drawButton(window, renderer, downButton(), "Heapify Down");
+    }
+    if (levelLoaded && isOperationLevel() && !currentComplete()) {
+        drawButton(window, renderer, undoButton(), "Undo");
+        drawButton(window, renderer, actionButton(),
+                   level.task == "heap_sort" ? "Run Heap Sort" : "Extract Max");
     }
     drawButton(window, renderer, resetButton(), "Reset Level");
     if (levelLoaded && currentComplete()) {
         drawButton(window, renderer, continueButton(), "View Result");
     }
     drawButton(window, renderer, menuButton(), "Main Menu");
-    renderer.drawText("R reset | Space pause | arrows step",
+    renderer.drawText("R reset | Z undo | Space pause | arrows step",
                       {550.f, 692.f}, 13, Palette::MUTED, true);
 }
 

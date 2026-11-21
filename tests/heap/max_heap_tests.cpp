@@ -163,5 +163,18 @@ int runMaxHeapTests() {
     check(silentEvents.empty() && silent.isSortedAscending(),
           "recording off keeps heap logic working without events");
 
+    MaxHeap snapshot;
+    snapshot.load(sampleValues());
+    snapshot.buildMaxHeap();
+    string beforeExtract = snapshot.serialize();
+    int snapshotMaximum = 0;
+    snapshot.extractMax(snapshotMaximum);
+    check(snapshot.deserialize(beforeExtract) && snapshot.activeSize() == 6 &&
+          snapshot.at(0) == 9 && snapshot.isMaxHeap(),
+          "heap snapshot restores values and active boundary for undo");
+    string unchanged = snapshot.serialize();
+    check(!snapshot.deserialize("not-a-snapshot") && snapshot.serialize() == unchanged,
+          "invalid heap snapshot is rejected without changing state");
+
     return failed;
 }

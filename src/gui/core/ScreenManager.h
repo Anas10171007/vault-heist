@@ -2,6 +2,7 @@
 #include "gui/core/Screen.h"
 #include "gui/core/ScreenId.h"
 #include "gui/core/Theme.h"
+#include "game/GameSession.h"
 
 namespace vh {
 
@@ -17,6 +18,7 @@ public:
 private:
     Screen* screens[ScreenId::COUNT];
     int activeScreen;
+    GameSession session;
 };
 
 }

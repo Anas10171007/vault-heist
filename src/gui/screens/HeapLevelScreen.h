@@ -3,6 +3,7 @@
 #include "game/LevelDef.h"
 #include "game/act4/HeapBuildLevel.h"
 #include "game/act4/HeapRepairLevel.h"
+#include "game/act4/HeapOperationLevel.h"
 #include "gui/core/AnimationController.h"
 #include "gui/core/Screen.h"
 #include "gui/core/Theme.h"
@@ -20,6 +21,8 @@ public:
     void update(float seconds) override;
     void draw(sf::RenderWindow& window) override;
     void onShow() override;
+    bool selectLevel(const string& id);
+    const ScoreSystem& score() const;
 
 private:
     Theme& theme;
@@ -27,6 +30,7 @@ private:
     bool levelLoaded;
     HeapBuildLevel buildLogic;
     HeapRepairLevel repairLogic;
+    HeapOperationLevel operationLogic;
     HeapView heapView;
     AnimationController animation;
     AlarmMeter alarmMeter;
@@ -39,6 +43,10 @@ private:
     void chooseDirection(int direction);
     bool loadLevel(const string& id);
     bool isBuildLevel() const;
+    bool isRepairLevel() const;
+    bool isOperationLevel() const;
+    void performOperation();
+    void undoOperation();
     bool currentComplete() const;
     bool currentFailed() const;
     const ScoreSystem& currentScore() const;
@@ -47,6 +55,8 @@ private:
                     sf::FloatRect bounds, const string& label) const;
     sf::FloatRect upButton() const;
     sf::FloatRect downButton() const;
+    sf::FloatRect actionButton() const;
+    sf::FloatRect undoButton() const;
     sf::FloatRect resetButton() const;
     sf::FloatRect continueButton() const;
     sf::FloatRect menuButton() const;

@@ -49,17 +49,11 @@ void StubScreen::draw(sf::RenderWindow& window) {
     titleLabel.setPosition({550.f, 105.f});
     window.draw(titleLabel);
 
-    sf::Text stubLabel = theme.makeLabel("STUB SCREEN", 16, Palette::WARNING);
-    sf::FloatRect stubSize = stubLabel.getLocalBounds();
-    stubLabel.setOrigin({stubSize.position.x + stubSize.size.x / 2.f, stubSize.position.y});
-    stubLabel.setPosition({550.f, 165.f});
-    window.draw(stubLabel);
-
     sf::Text descriptionLabel = theme.makeLabel(description, 20, Palette::TEXT);
     sf::FloatRect descriptionSize = descriptionLabel.getLocalBounds();
     descriptionLabel.setOrigin({descriptionSize.position.x + descriptionSize.size.x / 2.f,
                                 descriptionSize.position.y});
-    descriptionLabel.setPosition({550.f, 205.f});
+    descriptionLabel.setPosition({550.f, 185.f});
     window.draw(descriptionLabel);
 
     for (int i = 0; i < buttonCount; i++) {

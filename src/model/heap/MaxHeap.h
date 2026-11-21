@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "model/EventLog.h"
 #include "util/DynArray.h"
 
@@ -30,6 +31,8 @@ public:
     int swaps() const;
     void resetCounters();
     void setRecordEvents(bool enabled);
+    std::string serialize() const;
+    bool deserialize(const std::string& snapshot);
 
 private:
     friend class HeapValidator;

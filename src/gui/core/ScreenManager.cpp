@@ -1,6 +1,10 @@
 #include "gui/core/ScreenManager.h"
 #include "gui/screens/StubScreen.h"
 #include "gui/screens/HeapLevelScreen.h"
+#include "gui/screens/CampaignScreen.h"
+#include "gui/screens/BriefingScreen.h"
+#include "gui/screens/LevelScreen.h"
+#include "gui/screens/ResultScreen.h"
 
 namespace vh {
 
@@ -18,22 +22,10 @@ ScreenManager::ScreenManager(Theme& theme) {
     menu->addButton("Quit", ScreenId::QUIT);
     screens[ScreenId::MENU] = menu;
 
-    StubScreen* campaign = new StubScreen(theme, "Campaign Map", "Four acts and twenty vault missions");
-    campaign->addButton("Open Level Briefing", ScreenId::BRIEFING);
-    campaign->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::CAMPAIGN_MAP] = campaign;
-
-    StubScreen* briefing = new StubScreen(theme, "Level Briefing", "Review the mission before entering");
-    briefing->addButton("Start Level", ScreenId::LEVEL_PLAY);
-    briefing->addButton("Campaign Map", ScreenId::CAMPAIGN_MAP);
-    screens[ScreenId::BRIEFING] = briefing;
-
-    screens[ScreenId::LEVEL_PLAY] = new HeapLevelScreen(theme);
-
-    StubScreen* result = new StubScreen(theme, "Result", "Stars, steps, and penalties will appear here");
-    result->addButton("Retry", ScreenId::LEVEL_PLAY);
-    result->addButton("Campaign Map", ScreenId::CAMPAIGN_MAP);
-    screens[ScreenId::RESULT] = result;
+    screens[ScreenId::CAMPAIGN_MAP] = new CampaignScreen(theme, session);
+    screens[ScreenId::BRIEFING] = new BriefingScreen(theme, session);
+    screens[ScreenId::LEVEL_PLAY] = new LevelScreen(theme, session);
+    screens[ScreenId::RESULT] = new ResultScreen(theme, session);
 
     StubScreen* sandbox = new StubScreen(theme, "Sandbox", "Free-form data structure operations");
     sandbox->addButton("Main Menu", ScreenId::MENU);

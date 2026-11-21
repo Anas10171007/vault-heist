@@ -20,11 +20,16 @@ Each check prints one `PASS <case>` or `FAIL <case>` line. The run ends with
 | Scope | Checks | Passed | Failed |
 | --- | ---: | ---: | ---: |
 | Tree suites (BinaryTree, BST, AVL, validator, layout) | 415 | 415 | 0 |
-| Whole executable, all suites | 589 | 589 | 0 |
+| Whole executable, all suites | 602 | 602 | 0 |
 
 The non-tree suites (utilities, animation, levels, score, heap model, heap
-validator, heap view, heap build level) are included in the whole-executable
+validator, heap view, all five Act 4 levels, and heap snapshot undo) are included in the whole-executable
 row.
+
+The current Act 4 coverage includes empty, singleton, duplicate, negative,
+already-valid, repeated-extraction, full-sort, serialization round-trip, invalid
+snapshot, level scoring, and undo cases. The final line of the captured run is
+`all passed`.
 
 ## Tree suites
 

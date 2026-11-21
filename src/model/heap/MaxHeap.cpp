@@ -1,6 +1,7 @@
 #include "model/heap/MaxHeap.h"
 #include "model/heap/HeapValidator.h"
 #include <cassert>
+#include <sstream>
 #include <string>
 
 namespace vh {
@@ -227,6 +228,53 @@ void MaxHeap::resetCounters() {
 
 void MaxHeap::setRecordEvents(bool enabled) {
     recording = enabled;
+}
+
+string MaxHeap::serialize() const {
+    ostringstream output;
+    output << heapSize << '|';
+    for (int index = 0; index < values.size(); index++) {
+        if (index > 0) output << ',';
+        output << values[index];
+    }
+    return output.str();
+}
+
+bool MaxHeap::deserialize(const string& snapshot) {
+    size_t divider = snapshot.find('|');
+    if (divider == string::npos) return false;
+
+    int restoredSize = 0;
+    try {
+        size_t used = 0;
+        restoredSize = stoi(snapshot.substr(0, divider), &used);
+        if (used != divider || restoredSize < 0) return false;
+    } catch (...) {
+        return false;
+    }
+
+    DynArray<int> restored;
+    string valuesText = snapshot.substr(divider + 1);
+    istringstream input(valuesText);
+    string token;
+    while (getline(input, token, ',')) {
+        if (token.empty()) return false;
+        try {
+            size_t used = 0;
+            int value = stoi(token, &used);
+            if (used != token.size()) return false;
+            restored.push(value);
+        } catch (...) {
+            return false;
+        }
+    }
+    if (restoredSize > restored.size() || (valuesText.empty() && restoredSize != 0)) return false;
+
+    values = restored;
+    heapSize = restoredSize;
+    resetCounters();
+    debugValidate();
+    return true;
 }
 
 void MaxHeap::debugValidate() const {

@@ -215,5 +215,9 @@ same case name.
 
 ## 7. Benchmark analysis
 
-*Placeholder — this section is filled in after the benchmark CSVs exist. No
-timings or throughput numbers are reported in this draft.*
+The reproducible benchmark suite writes seven CSV files under `bench/results`.
+It compares sorted and seeded-random insertion in BST and AVL trees, linear
+Max Heap construction, Heap Sort, and hand-written insertion and selection
+sort baselines. Tree files include final height and AVL rotation counts; heap
+files include comparisons and swaps. Full methodology and reproduction
+instructions are in `docs/bench-notes.md`.
