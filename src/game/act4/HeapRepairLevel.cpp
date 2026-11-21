@@ -1,11 +1,14 @@
 #include "game/act4/HeapRepairLevel.h"
 
+using namespace std;
+
 namespace vh {
 
 HeapRepairLevel::HeapRepairLevel() : scoring(1), complete(false) {}
 
 void HeapRepairLevel::load(const DynArray<int>& values) {
     heap.load(values);
+    history.clear();
     scoring.reset(1);
     complete = heap.isMaxHeap();
     if (complete) scoring.finish();
@@ -36,6 +39,12 @@ EventLog HeapRepairLevel::chooseRepair(int index, int direction, bool& accepted)
         return EventLog();
     }
 
+    Snapshot snapshot;
+    snapshot.heapState = heap.serialize();
+    snapshot.scoreState = scoring;
+    snapshot.wasComplete = complete;
+    history.push(snapshot);
+
     accepted = true;
     scoring.addStep();
     EventLog events = direction == HeapDirection::UP ? heap.repairUp(index)
@@ -45,6 +54,15 @@ EventLog HeapRepairLevel::chooseRepair(int index, int direction, bool& accepted)
         scoring.finish();
     }
     return events;
+}
+
+bool HeapRepairLevel::undo() {
+    if (history.empty()) return false;
+    Snapshot snapshot = history.pop();
+    if (!heap.deserialize(snapshot.heapState)) return false;
+    scoring = snapshot.scoreState;
+    complete = snapshot.wasComplete;
+    return true;
 }
 
 bool HeapRepairLevel::isComplete() const { return complete; }

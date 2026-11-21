@@ -84,5 +84,14 @@ int runHeapOperationLevelTests() {
     invalid.chooseSwap(0, 1, accepted);
     check(!accepted && invalid.score().penalties() == 1 && !invalid.isComplete(),
           "swap before extract is an invalid heap action");
+
+    HeapOperationLevel extractUndo;
+    extractUndo.load(values, "heap_extract");
+    extractUndo.extractMaximum();
+    int sizeAfterExtract = extractUndo.activeSize();
+    check(extractUndo.undo() && extractUndo.activeSize() == values.size() &&
+          extractUndo.score().steps() == 0 && !extractUndo.needsRestore(),
+          "undo after extract restores heap size, score, and restore flag");
+    (void)sizeAfterExtract;
     return failed;
 }

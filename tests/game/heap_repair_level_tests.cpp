@@ -48,5 +48,13 @@ int runHeapRepairLevelTests() {
           longerRoute.score().steps() == 2,
           "a longer valid repair route is allowed but costs an extra step");
 
+    HeapRepairLevel undoLevel;
+    undoLevel.load(disturbedDownHeap());
+    undoLevel.chooseRepair(0, HeapDirection::DOWN, accepted);
+    check(undoLevel.isComplete() && undoLevel.valueAt(0) == 90, "setup for repair undo");
+    check(undoLevel.undo() && !undoLevel.isComplete() && undoLevel.valueAt(0) == 20 &&
+          undoLevel.score().steps() == 0,
+          "repair level undo restores heap, complete flag, and score");
+
     return failed;
 }

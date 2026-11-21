@@ -279,13 +279,31 @@ void HeapLevelScreen::extractOperation() {
 }
 
 void HeapLevelScreen::undoOperation() {
-    if (!isOperationLevel() || waitingForAnimation || !operationLogic.undo()) {
+    if (waitingForAnimation) {
+        message = "Wait for the animation to finish.";
+        return;
+    }
+
+    bool restoredOk = false;
+    if (isBuildLevel()) restoredOk = buildLogic.undo();
+    else if (isRepairLevel()) restoredOk = repairLogic.undo();
+    else if (isOperationLevel()) restoredOk = operationLogic.undo();
+
+    if (!restoredOk) {
         message = "Nothing to undo.";
         return;
     }
+
     DynArray<int> restored;
-    operationLogic.copyValues(restored);
-    heapView.load(restored, operationLogic.activeSize());
+    copyCurrentValues(restored);
+    int active = isOperationLevel() ? operationLogic.activeSize() : restored.size();
+    heapView.load(restored, active);
+    firstSelection = -1;
+    heapView.setSelectedIndex(-1);
+
+    EventLog empty;
+    animation.load(empty);
+    waitingForAnimation = false;
     message = "Last operation undone.";
 }
 
@@ -320,7 +338,7 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
         resetLevel();
         return ScreenId::NONE;
     }
-    if (isOperationLevel() && undoButton().contains(point)) {
+    if (levelLoaded && undoButton().contains(point)) {
         undoOperation();
         return ScreenId::NONE;
     }
@@ -474,8 +492,10 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
         drawButton(window, renderer, upButton(), "Heapify Up");
         drawButton(window, renderer, downButton(), "Heapify Down");
     }
-    if (levelLoaded && isOperationLevel() && !currentComplete()) {
+    if (levelLoaded && !currentComplete()) {
         drawButton(window, renderer, undoButton(), "Undo");
+    }
+    if (levelLoaded && isOperationLevel() && !currentComplete()) {
         drawButton(window, renderer, extractButton(), "Extract Max");
     }
     drawButton(window, renderer, resetButton(), "Reset Level");
