@@ -304,12 +304,24 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
         else if (key->code == sf::Keyboard::Key::Left) animation.stepBackward();
     }
 
+    if (const auto* release = event.getIf<sf::Event::MouseButtonReleased>()) {
+        if (release->button == sf::Mouse::Button::Left) scrubber.release();
+    }
+    if (scrubber.isDragging()) {
+        scrubber.handleDrag(window, animation);
+        waitingForAnimation = false;
+    }
+
     const sf::Event::MouseButtonPressed* click = event.getIf<sf::Event::MouseButtonPressed>();
     if (click == nullptr || click->button != sf::Mouse::Button::Left) {
         return ScreenId::NONE;
     }
 
     sf::Vector2f point = window.mapPixelToCoords(click->position);
+    if (scrubber.handleClick(window, point, animation)) {
+        waitingForAnimation = false;
+        return ScreenId::NONE;
+    }
     if (LevelChrome::resetButton().contains(point)) {
         resetLevel();
         return ScreenId::NONE;
@@ -408,8 +420,9 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
                       ButtonKind::GHOST);
     chrome.drawButton(window, theme, renderer, LevelChrome::exitButton(), "Campaign [Esc]",
                       ButtonKind::SECONDARY);
+    scrubber.draw(window, renderer, theme, animation);
     chrome.drawHelp(renderer,
-                    "Z undo · H hint · P replay · Space pause · arrows step · Esc map");
+                    "Scrubber · Z undo · H hint · P replay · Space · arrows · Esc");
 }
 
 }

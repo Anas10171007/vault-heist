@@ -1,10 +1,13 @@
 #include "gui/core/ScreenManager.h"
+#include "game/SaveManager.h"
 #include "gui/screens/StubScreen.h"
 #include "gui/screens/HeapLevelScreen.h"
 #include "gui/screens/CampaignScreen.h"
 #include "gui/screens/BriefingScreen.h"
 #include "gui/screens/LevelScreen.h"
+#include "gui/screens/LeaderboardScreen.h"
 #include "gui/screens/ResultScreen.h"
+#include "gui/screens/SandboxScreen.h"
 #include "gui/screens/SettingsScreen.h"
 
 namespace vh {
@@ -13,6 +16,8 @@ ScreenManager::ScreenManager(Theme& theme) {
     for (int i = 0; i < ScreenId::COUNT; i++) {
         screens[i] = nullptr;
     }
+
+    SaveManager::loadProgress(session);
 
     StubScreen* menu = new StubScreen(theme, "Vault Heist",
                                       "Breach the living vault. Trees, heaps, one alarm.");
@@ -28,20 +33,14 @@ ScreenManager::ScreenManager(Theme& theme) {
     screens[ScreenId::BRIEFING] = new BriefingScreen(theme, session);
     screens[ScreenId::LEVEL_PLAY] = new LevelScreen(theme, session);
     screens[ScreenId::RESULT] = new ResultScreen(theme, session);
-
-    StubScreen* sandbox = new StubScreen(theme, "Sandbox", "Free-form data structure operations");
-    sandbox->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::SANDBOX] = sandbox;
+    screens[ScreenId::SANDBOX] = new SandboxScreen(theme);
 
     StubScreen* endless = new StubScreen(theme, "Endless Mode", "Survive an increasing stream of operations");
     endless->addButton("Leaderboard", ScreenId::LEADERBOARD);
     endless->addButton("Main Menu", ScreenId::MENU);
     screens[ScreenId::ENDLESS] = endless;
 
-    StubScreen* leaderboard = new StubScreen(theme, "Leaderboard", "Local high scores will appear here");
-    leaderboard->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::LEADERBOARD] = leaderboard;
-
+    screens[ScreenId::LEADERBOARD] = new LeaderboardScreen(theme, session);
     screens[ScreenId::SETTINGS] = new SettingsScreen(theme, session);
 
     activeScreen = ScreenId::MENU;

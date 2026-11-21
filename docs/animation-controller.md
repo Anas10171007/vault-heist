@@ -26,6 +26,12 @@ event. Rewinding resets the visual snapshot and reapplies the completed prefix.
 Instant playback performs the same reconstruction through the entire log,
 without intermediate animation. This is visual playback, not gameplay undo.
 
+`seekTo(index)` (B10) pauses, clamps the index to `[0, eventCount]`, sets
+`completed`, clears mid-event timers, and calls `rebuild()`. The replay
+scrubber maps a mouse X position on its track to an index and calls `seekTo`.
+Like Left/Right stepping, it only redraws the listener; it never mutates the
+live heap or tree.
+
 The Level Play demonstration uses five dummy events and progress bars.
 Navigate Menu > Campaign > Briefing > Start Level, then use:
 

@@ -109,6 +109,17 @@ public:
         rebuild();
     }
 
+    // Scrubber seek: rebuild visuals only. Never touches the live model.
+    void seekTo(int index) {
+        pause();
+        if (index < 0) index = 0;
+        if (index > events.size()) index = events.size();
+        completed = index;
+        ticks = 0;
+        accumulated = 0;
+        rebuild();
+    }
+
 private:
     EventLog events;
     AnimationListener* listener;

@@ -9,6 +9,7 @@
 #include "gui/core/Theme.h"
 #include "gui/widgets/HeapView.h"
 #include "gui/widgets/LevelChrome.h"
+#include "gui/widgets/ReplayScrubber.h"
 
 using namespace std;
 
@@ -37,6 +38,7 @@ private:
     HeapView heapView;
     AnimationController animation;
     LevelChrome chrome;
+    ReplayScrubber scrubber;
     int firstSelection;
     bool waitingForAnimation;
     string message;

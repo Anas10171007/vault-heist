@@ -1,5 +1,7 @@
 #include "gui/screens/LevelScreen.h"
+#include "game/Leaderboard.h"
 #include "game/LevelPlayFactory.h"
+#include "game/SaveManager.h"
 #include "gui/core/Renderer.h"
 #include "gui/core/ScreenId.h"
 #include "game/tree/TreeLayout.h"
@@ -67,6 +69,12 @@ void LevelScreen::storeResult(const ScoreSystem& score) {
     session.finalVaultUnlocked = false;
     session.nextLevelId.clear();
     session.recordStars(session.selectedLevel, score.stars());
+    SaveManager::saveProgress(session);
+
+    Leaderboard board;
+    board.load();
+    board.addScore(session.selectedLevel, score.score());
+    board.save();
 
     for (int index = 0; index < levels.size(); index++) {
         if (levels.at(index).id == session.selectedLevel && index + 1 < levels.size()) {
