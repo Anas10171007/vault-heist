@@ -74,6 +74,8 @@ public:
     BuildResult deserialize(const std::string& text);
 
     TreeNode* findById(int nodeId) const;
+    TreeNode* findByValue(int value) const;
+    bool swapChildren(int nodeId);
 
 protected:
     TreeNode* rootNode;

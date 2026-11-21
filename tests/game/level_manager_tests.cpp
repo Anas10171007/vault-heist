@@ -14,7 +14,7 @@ int runLevelManagerTests() {
 
     LevelManager manager;
     check(manager.loadAll("data/levels"), "level manager loads all four act files");
-    check(manager.size() == 5, "level manager stores every sample level");
+    check(manager.size() == 8, "level manager stores every authored level");
 
     const LevelDef* patrol = manager.load("1.1");
     check(patrol != nullptr && patrol->structure == "binary" && patrol->rules.traversal == "preorder",
