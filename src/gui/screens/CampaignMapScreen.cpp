@@ -56,7 +56,7 @@ void CampaignMapScreen::drawAct(Renderer& renderer, sf::RenderTarget& target, in
     const char* names[4] = {"ACT 1 - TREES", "ACT 2 - SEARCH", "ACT 3 - BALANCE",
                             "ACT 4 - HEAP"};
     bool ready = act < 4;
-    renderer.drawText(names[act], {x, 122.f}, 17,
+    renderer.drawText(names[act - 1], {x, 122.f}, 17,
                       ready ? Palette::TARGET : Palette::MUTED, false);
     if (!ready) {
         renderer.drawText("COMING SOON", {x + 20.f, 200.f}, 18, Palette::WARNING, false);

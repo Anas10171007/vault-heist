@@ -226,7 +226,9 @@ bool TreeAnimationView::pickNode(sf::Vector2f worldPoint, int& nodeId) const {
 void TreeAnimationView::draw(Renderer& renderer) const {
     TreeLayout frame = motion.eventCount() == 0 ? motion.finalLayout()
                                                  : motion.frameAt(activeIndex, activeProgress);
-    renderer.drawText(eventName(activeEvent.type), {originX, 18.f}, 16, Palette::TEXT, false);
+    if (showEventLabel) {
+        renderer.drawText(eventName(activeEvent.type), {originX, 18.f}, 16, Palette::TEXT, false);
+    }
     drawEdges(renderer, frame);
     for (int i = 0; i < frame.size(); i++) {
         int id = frame.at(i).nodeId;

@@ -27,6 +27,7 @@ LevelPlayScreen::LevelPlayScreen(Theme& sharedTheme)
     : theme(sharedTheme), camera({1100.f, 720.f}) {
     manager.loadAll("data/levels");
     treeView.setOrigin(60.f, 120.f);
+    treeView.setShowEventLabel(false);
     animation.setListener(&treeView);
 }
 

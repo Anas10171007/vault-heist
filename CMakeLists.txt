@@ -55,3 +55,15 @@ add_executable(treeanimdemo
     src/gui/tree/TreeAnimationView.cpp)
 target_include_directories(treeanimdemo PRIVATE src)
 target_link_libraries(treeanimdemo PRIVATE gamecore SFML::Graphics)
+add_executable(levelsmoke
+    tools/level_smoke.cpp
+    src/gui/core/Camera.cpp
+    src/gui/core/Renderer.cpp
+    src/gui/core/Theme.cpp
+    src/gui/screens/CampaignMapScreen.cpp
+    src/gui/screens/LevelPlayScreen.cpp
+    src/gui/screens/SessionProgress.cpp
+    src/gui/tree/TreeAnimationView.cpp
+    src/gui/widgets/AlarmMeter.cpp)
+target_include_directories(levelsmoke PRIVATE src)
+target_link_libraries(levelsmoke PRIVATE gamecore SFML::Graphics)

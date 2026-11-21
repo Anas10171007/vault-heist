@@ -21,6 +21,7 @@ public:
     void setModel(const BinaryTree& tree) { model = &tree; }
     void setMotion(const TreeMotion& script) { motion = script; }
     void setOrigin(float x, float y) { originX = x; originY = y; }
+    void setShowEventLabel(bool enabled) { showEventLabel = enabled; }
 
     void reset() override;
     void onEvent(const Event& event, float progress) override;
@@ -51,6 +52,7 @@ private:
     int activeIndex = -1;
     Event activeEvent;
     float activeProgress = 0.f;
+    bool showEventLabel = true;
 };
 
 }
