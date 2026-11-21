@@ -11,9 +11,10 @@ LevelScreen::LevelScreen(Theme& sharedTheme, GameSession& sharedSession)
 }
 LevelScreen::~LevelScreen() { delete logic; }
 sf::FloatRect LevelScreen::nextButton() const { return {{810.f, 400.f}, {240.f, 42.f}}; }
-sf::FloatRect LevelScreen::hintButton() const { return {{810.f, 452.f}, {240.f, 42.f}}; }
-sf::FloatRect LevelScreen::resetButton() const { return {{810.f, 504.f}, {240.f, 42.f}}; }
-sf::FloatRect LevelScreen::exitButton() const { return {{810.f, 556.f}, {240.f, 42.f}}; }
+sf::FloatRect LevelScreen::hintButton() const { return {{810.f, 448.f}, {240.f, 38.f}}; }
+sf::FloatRect LevelScreen::undoButton() const { return {{810.f, 492.f}, {240.f, 38.f}}; }
+sf::FloatRect LevelScreen::resetButton() const { return {{810.f, 536.f}, {240.f, 38.f}}; }
+sf::FloatRect LevelScreen::exitButton() const { return {{810.f, 580.f}, {240.f, 38.f}}; }
 
 void LevelScreen::onShow() {
     delete logic;
@@ -22,19 +23,32 @@ void LevelScreen::onShow() {
     heapMode = level && level->act == 4;
     if (!level) { message = "Level data unavailable."; return; }
     if (heapMode) {
+        heapScreen.setAnimationSpeed(session.animationSpeed);
         heapScreen.selectLevel(level->id);
         message.clear();
         return;
     }
     logic = createLevelPlay(*level);
     if (!logic || !logic->load(*level)) { message = "Could not create level logic."; return; }
+    history.clear();
     message = "Click Next Step, or press N, to execute the expected player action.";
 }
 
 void LevelScreen::applyNext() {
     if (!logic || logic->isComplete() || logic->isFailed()) return;
-    PlayResult result = logic->apply(logic->nextAction());
+    PlayerAction action = logic->nextAction();
+    history.push(action);
+    PlayResult result = logic->apply(action);
     message = result.message.empty() ? (result.correct ? "Correct action." : "Action applied.") : result.message;
+}
+
+void LevelScreen::undo() {
+    if (!logic || history.empty()) { message = "Nothing to undo."; return; }
+    history.pop();
+    DynArray<PlayerAction> replay = history;
+    logic->reset();
+    for (int index = 0; index < replay.size(); index++) logic->apply(replay[index]);
+    message = "Last action undone.";
 }
 
 void LevelScreen::storeResult(const ScoreSystem& score) {
@@ -54,10 +68,11 @@ int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     const auto* key = event.getIf<sf::Event::KeyPressed>();
     if (key) {
         if (key->code == sf::Keyboard::Key::N) applyNext();
+        else if (key->code == sf::Keyboard::Key::Z) undo();
         else if (key->code == sf::Keyboard::Key::H && logic) {
             PlayResult result = logic->hint();
             message = result.message.empty() ? "Hint highlighted the next action." : result.message;
-        } else if (key->code == sf::Keyboard::Key::R && logic) logic->reset();
+        } else if (key->code == sf::Keyboard::Key::R && logic) { logic->reset(); history.clear(); }
         else if (key->code == sf::Keyboard::Key::Enter && logic && logic->isComplete()) {
             storeResult(logic->score()); return ScreenId::RESULT;
         }
@@ -69,7 +84,8 @@ int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     else if (hintButton().contains(point) && logic) {
         PlayResult result = logic->hint();
         message = result.message.empty() ? "Hint highlighted the next action." : result.message;
-    } else if (resetButton().contains(point) && logic) logic->reset();
+    } else if (undoButton().contains(point)) undo();
+    else if (resetButton().contains(point) && logic) { logic->reset(); history.clear(); }
     else if (exitButton().contains(point)) return ScreenId::CAMPAIGN_MAP;
     if (logic && logic->isComplete()) { storeResult(logic->score()); return ScreenId::RESULT; }
     return ScreenId::NONE;
@@ -93,12 +109,14 @@ void LevelScreen::draw(sf::RenderWindow& window) {
     alarm.draw(window, renderer, logic->score(), {820.f, 170.f}, 220.f);
     renderer.drawText("Steps: " + to_string(logic->score().steps()), {820.f, 230.f}, 16, Palette::TEXT, false);
     renderer.drawText("Score: " + to_string(logic->score().score()), {820.f, 260.f}, 16, Palette::TEXT, false);
-    const sf::FloatRect buttons[] = {nextButton(), hintButton(), resetButton(), exitButton()};
-    const char* labels[] = {"Next Step [N]", "Hint [H]", "Reset [R]", "Campaign Map"};
-    for (int index = 0; index < 4; index++) {
+    const sf::FloatRect buttons[] = {nextButton(), hintButton(), undoButton(), resetButton(), exitButton()};
+    const char* labels[] = {"Next Step [N]", "Hint [H]", "Undo [Z]", "Reset [R]", "Campaign Map"};
+    for (int index = 0; index < 5; index++) {
         window.draw(theme.makeButton(buttons[index].position, buttons[index].size));
         renderer.drawText(labels[index], buttons[index].position + buttons[index].size / 2.f,
                           17, Palette::TEXT, true);
     }
+    if (session.showHelp) renderer.drawText("N next | H hint | Z undo | R reset | Esc menu",
+                                            {400.f, 625.f}, 13, Palette::MUTED, true);
 }
 }

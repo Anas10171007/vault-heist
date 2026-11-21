@@ -6,6 +6,7 @@
 #include "gui/core/Theme.h"
 #include "gui/screens/HeapLevelScreen.h"
 #include "gui/widgets/AlarmMeter.h"
+#include "util/DynArray.h"
 
 namespace vh {
 class LevelScreen : public Screen {
@@ -25,11 +26,14 @@ private:
     AlarmMeter alarm;
     bool heapMode;
     string message;
+    DynArray<PlayerAction> history;
     sf::FloatRect nextButton() const;
     sf::FloatRect hintButton() const;
     sf::FloatRect resetButton() const;
     sf::FloatRect exitButton() const;
+    sf::FloatRect undoButton() const;
     void applyNext();
+    void undo();
     void storeResult(const ScoreSystem& score);
 };
 }

@@ -5,6 +5,7 @@
 #include "gui/screens/BriefingScreen.h"
 #include "gui/screens/LevelScreen.h"
 #include "gui/screens/ResultScreen.h"
+#include "gui/screens/SettingsScreen.h"
 
 namespace vh {
 
@@ -40,9 +41,7 @@ ScreenManager::ScreenManager(Theme& theme) {
     leaderboard->addButton("Main Menu", ScreenId::MENU);
     screens[ScreenId::LEADERBOARD] = leaderboard;
 
-    StubScreen* settings = new StubScreen(theme, "Settings", "Display and animation settings");
-    settings->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::SETTINGS] = settings;
+    screens[ScreenId::SETTINGS] = new SettingsScreen(theme, session);
 
     activeScreen = ScreenId::MENU;
 }

@@ -33,6 +33,7 @@ bool HeapLevelScreen::loadLevel(const string& id) {
 
 bool HeapLevelScreen::selectLevel(const string& id) { return loadLevel(id); }
 const ScoreSystem& HeapLevelScreen::score() const { return currentScore(); }
+void HeapLevelScreen::setAnimationSpeed(float speed) { animation.setSpeed(speed); }
 
 bool HeapLevelScreen::isBuildLevel() const {
     return level.task == "heap_build";

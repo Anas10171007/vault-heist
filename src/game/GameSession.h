@@ -10,6 +10,8 @@ struct GameSession {
     int stars = 0;
     int steps = 0;
     int penalties = 0;
+    float animationSpeed = 1.f;
+    bool showHelp = true;
 };
 
 }

@@ -23,6 +23,7 @@ public:
     void onShow() override;
     bool selectLevel(const string& id);
     const ScoreSystem& score() const;
+    void setAnimationSpeed(float speed);
 
 private:
     Theme& theme;
