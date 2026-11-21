@@ -4,7 +4,33 @@
 #include <sstream>
 #include <string>
 
+using namespace std;
+
 namespace vh {
+
+static bool readSnapshotInteger(const string& text, int& value) {
+    if (text.empty()) return false;
+
+    int index = 0;
+    bool negative = false;
+    if (text[0] == '-') {
+        negative = true;
+        index = 1;
+    }
+    if (index == (int)text.size()) return false;
+
+    int result = 0;
+    for (; index < (int)text.size(); index++) {
+        char character = text[index];
+        if (character < '0' || character > '9') return false;
+        int digit = character - '0';
+        if (result > (2147483647 - digit) / 10) return false;
+        result = result * 10 + digit;
+    }
+
+    value = negative ? -result : result;
+    return true;
+}
 
 MaxHeap::MaxHeap(bool recordEvents)
     : heapSize(0), comparisonCount(0), swapCount(0), recording(recordEvents) {}
@@ -143,6 +169,26 @@ EventLog MaxHeap::extractMax(int& maximum) {
     return events;
 }
 
+EventLog MaxHeap::extractMaxNoHeapify(int& maximum) {
+    EventLog events(recording);
+    if (heapSize <= 0) return events;
+
+    int oldSize = heapSize;
+    maximum = values[0];
+    events.append(Event(EventType::EXTRACT_MAX, 0, heapSize, Side::NONE, maximum));
+
+    if (heapSize > 1) {
+        swapValues(0, heapSize - 1, HeapReason::EXTRACT, events);
+    }
+
+    heapSize--;
+    events.append(Event(EventType::HEAP_SIZE_CHANGE, 0, 0, Side::NONE, 0,
+                        oldSize, heapSize));
+    events.append(Event(EventType::MARK_SORTED, heapSize, 0, Side::NONE, values[heapSize]));
+    // Caller appends DONE (and HEAP_SORT_COMPLETE when the full sort finishes).
+    return events;
+}
+
 EventLog MaxHeap::heapSort() {
     EventLog events(recording);
     buildMaxHeap(events);
@@ -245,11 +291,7 @@ bool MaxHeap::deserialize(const string& snapshot) {
     if (divider == string::npos) return false;
 
     int restoredSize = 0;
-    try {
-        size_t used = 0;
-        restoredSize = stoi(snapshot.substr(0, divider), &used);
-        if (used != divider || restoredSize < 0) return false;
-    } catch (...) {
+    if (!readSnapshotInteger(snapshot.substr(0, divider), restoredSize) || restoredSize < 0) {
         return false;
     }
 
@@ -259,21 +301,18 @@ bool MaxHeap::deserialize(const string& snapshot) {
     string token;
     while (getline(input, token, ',')) {
         if (token.empty()) return false;
-        try {
-            size_t used = 0;
-            int value = stoi(token, &used);
-            if (used != token.size()) return false;
-            restored.push(value);
-        } catch (...) {
-            return false;
-        }
+        int value = 0;
+        if (!readSnapshotInteger(token, value)) return false;
+        restored.push(value);
     }
     if (restoredSize > restored.size() || (valuesText.empty() && restoredSize != 0)) return false;
 
     values = restored;
     heapSize = restoredSize;
     resetCounters();
-    debugValidate();
+    // Snapshots can be mid-extract (heap property broken until the player
+    // heapifies). Only validate when the restored array is already a Max Heap.
+    if (isMaxHeap()) debugValidate();
     return true;
 }
 

@@ -164,7 +164,8 @@ range query.
 ## 5. Test strategy and real counts
 
 `tests.exe` prints one `PASS`/`FAIL` line per check. The current run is
-**589 PASS, 0 FAIL**. `tests/TEST_REPORT.md` lists the tree suites by case name:
+**621 PASS, 0 FAIL**. `tests/TEST_REPORT.md` lists the tree suites by case name
+and the heap suites under “Heap results (Arslan)”:
 
 | Suite | Checks | Passed |
 | --- | ---: | ---: |
@@ -174,7 +175,8 @@ range query.
 | Tree validator | 24 | 24 |
 | Tree layout | 20 | 20 |
 | **Tree suites total** | **415** | **415** |
-| **Whole executable** | **589** | **589** |
+| Heap suites (Arslan) | 73 | 73 |
+| **Whole executable** | **621** | **621** |
 
 The strategy has four parts:
 

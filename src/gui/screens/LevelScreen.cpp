@@ -60,12 +60,21 @@ void LevelScreen::storeResult(const ScoreSystem& score) {
     session.steps = score.steps();
     session.penalties = score.penalties();
     session.resultMessage = "Mission " + session.selectedLevel + " complete";
+    session.sortedArrayText.clear();
+    session.finalVaultUnlocked = false;
 }
 
 int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     if (heapMode) {
         int target = heapScreen.handleEvent(event, window);
-        if (target == ScreenId::RESULT) storeResult(heapScreen.score());
+        if (target == ScreenId::RESULT) {
+            storeResult(heapScreen.score());
+            if (heapScreen.isFinalVaultLevel()) {
+                session.finalVaultUnlocked = true;
+                session.sortedArrayText = heapScreen.sortedArrayText();
+                session.resultMessage = "Final Vault Unlocked";
+            }
+        }
         return target;
     }
     const auto* key = event.getIf<sf::Event::KeyPressed>();

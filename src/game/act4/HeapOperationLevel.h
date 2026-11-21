@@ -4,27 +4,45 @@
 #include "model/heap/MaxHeap.h"
 #include "util/DynArray.h"
 
+using namespace std;
+
 namespace vh {
 
 class HeapOperationLevel {
 public:
     HeapOperationLevel();
 
-    void load(const DynArray<int>& values, const std::string& task);
-    EventLog perform();
+    void load(const DynArray<int>& values, const string& task, int targetExtractions = 0);
+    EventLog extractMaximum();
+    EventLog restoreHeap();
     bool undo();
     bool isComplete() const;
     bool isFailed() const;
+    bool needsHeapify() const;
     int activeSize() const;
     void copyValues(DynArray<int>& output) const;
     const ScoreSystem& score() const;
 
 private:
+    struct Snapshot {
+        string heapState;
+        ScoreSystem scoreState;
+        bool wasComplete;
+        int extractionsDone;
+        bool awaitingHeapify;
+    };
+
     MaxHeap heap;
     ScoreSystem scoring;
-    std::string taskName;
-    DynArray<std::string> history;
+    string taskName;
+    DynArray<Snapshot> history;
+    int extractionGoal;
+    int completedExtractions;
+    bool awaitingHeapify;
     bool complete;
+
+    void pushSnapshot();
+    void refreshComplete();
 };
 
 }

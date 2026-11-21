@@ -24,6 +24,8 @@ public:
     bool selectLevel(const string& id);
     const ScoreSystem& score() const;
     void setAnimationSpeed(float speed);
+    bool isFinalVaultLevel() const;
+    string sortedArrayText() const;
 
 private:
     Theme& theme;
@@ -46,7 +48,8 @@ private:
     bool isBuildLevel() const;
     bool isRepairLevel() const;
     bool isOperationLevel() const;
-    void performOperation();
+    void extractOperation();
+    void heapifyOperation();
     void undoOperation();
     bool currentComplete() const;
     bool currentFailed() const;
@@ -56,7 +59,8 @@ private:
                     sf::FloatRect bounds, const string& label) const;
     sf::FloatRect upButton() const;
     sf::FloatRect downButton() const;
-    sf::FloatRect actionButton() const;
+    sf::FloatRect extractButton() const;
+    sf::FloatRect heapifyButton() const;
     sf::FloatRect undoButton() const;
     sf::FloatRect resetButton() const;
     sf::FloatRect continueButton() const;

@@ -103,7 +103,8 @@ real run. `bench.exe` generates seven deterministic CSV files in
 
 ## Documentation
 
-`docs/level-format.md` is the JSON reference, `docs/level-guide.md` is the
-practical guide to adding levels, `docs/level-interface.md` documents the API
-the level screens will call, and `docs/event-payloads.md` documents event
-fields.
+`docs/LLM-HANDOFF.md` records the team workflow, coding constraints, and
+current handoff status for any new AI assistant. `docs/level-format.md` is the
+JSON reference, `docs/level-guide.md` is the practical guide to adding levels,
+`docs/level-interface.md` documents the API the level screens will call, and
+`docs/event-payloads.md` documents event fields.

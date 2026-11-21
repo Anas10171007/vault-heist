@@ -15,6 +15,7 @@ public:
     EventLog buildMaxHeap();
     EventLog insert(int value);
     EventLog extractMax(int& maximum);
+    EventLog extractMaxNoHeapify(int& maximum);
     EventLog heapSort();
     EventLog playerSwap(int first, int second);
     EventLog repairUp(int index);

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "model/heap/MaxHeap.h"
+#include "util/Rng.h"
 
 using namespace std;
 using namespace vh;
@@ -13,6 +14,40 @@ static DynArray<int> sampleValues() {
     values.push(5);
     values.push(8);
     return values;
+}
+
+// Hand-written ascending sort for the Heap Sort reference checks. std::sort is
+// banned by the TA rules, so the test suite must not lean on it.
+static void referenceSortAscending(DynArray<int>& values) {
+    for (int i = 0; i < values.size(); i++) {
+        int smallest = i;
+        for (int j = i + 1; j < values.size(); j++) {
+            if (values[j] < values[smallest]) smallest = j;
+        }
+        if (smallest != i) {
+            int temporary = values[i];
+            values[i] = values[smallest];
+            values[smallest] = temporary;
+        }
+    }
+}
+
+static bool matchesReferenceSort(const DynArray<int>& input) {
+    DynArray<int> expected = input;
+    referenceSortAscending(expected);
+
+    MaxHeap heap(false);
+    heap.load(input);
+    heap.heapSort();
+
+    if (heap.size() != expected.size() || heap.activeSize() != 0 ||
+        !heap.isSortedAscending()) {
+        return false;
+    }
+    for (int index = 0; index < expected.size(); index++) {
+        if (heap.at(index) != expected[index]) return false;
+    }
+    return true;
 }
 
 int runMaxHeapTests() {
@@ -77,6 +112,24 @@ int runMaxHeapTests() {
     duplicates.load(duplicateValues);
     duplicates.buildMaxHeap();
     check(duplicates.isMaxHeap(), "duplicates are allowed in a Max Heap");
+
+    DynArray<int> reverseValues;
+    for (int value = 9; value >= 1; value--) reverseValues.push(value);
+    MaxHeap reverseBuilt;
+    reverseBuilt.load(reverseValues);
+    reverseBuilt.buildMaxHeap();
+    check(reverseBuilt.isMaxHeap() && reverseBuilt.at(0) == 9,
+          "buildMaxHeap repairs a reverse-sorted array");
+
+    DynArray<int> randomValues;
+    for (int value = 0; value < 20; value++) randomValues.push(value);
+    Rng rng(0xBEEFu);
+    rng.shuffle(randomValues);
+    MaxHeap randomBuilt;
+    randomBuilt.load(randomValues);
+    randomBuilt.buildMaxHeap();
+    check(randomBuilt.isMaxHeap() && randomBuilt.activeSize() == 20,
+          "buildMaxHeap repairs a random permutation");
 
     MaxHeap inserted;
     inserted.load(validValues);
@@ -146,16 +199,48 @@ int runMaxHeapTests() {
           sortEvents.at(sortEvents.size() - 1).type == EventType::DONE,
           "Heap Sort ends with completion and done events");
 
+    DynArray<int> emptySortInput;
+    check(matchesReferenceSort(emptySortInput),
+          "Heap Sort matches reference sort on an empty array");
+
+    DynArray<int> singletonSortInput;
+    singletonSortInput.push(42);
+    check(matchesReferenceSort(singletonSortInput),
+          "Heap Sort matches reference sort on a singleton");
+
+    DynArray<int> duplicateSortInput;
+    duplicateSortInput.push(4);
+    duplicateSortInput.push(1);
+    duplicateSortInput.push(4);
+    duplicateSortInput.push(2);
+    duplicateSortInput.push(4);
+    check(matchesReferenceSort(duplicateSortInput),
+          "Heap Sort matches reference sort with duplicates");
+
     DynArray<int> negativeValues;
     negativeValues.push(-2);
     negativeValues.push(-8);
     negativeValues.push(-1);
     negativeValues.push(-5);
-    MaxHeap negatives;
-    negatives.load(negativeValues);
-    negatives.heapSort();
-    check(negatives.at(0) == -8 && negatives.at(1) == -5 && negatives.at(2) == -2 &&
-          negatives.at(3) == -1, "Heap Sort handles negative values");
+    check(matchesReferenceSort(negativeValues),
+          "Heap Sort matches reference sort with negatives");
+
+    DynArray<int> alreadySortedInput;
+    for (int value = 1; value <= 8; value++) alreadySortedInput.push(value);
+    check(matchesReferenceSort(alreadySortedInput),
+          "Heap Sort matches reference sort on a sorted array");
+
+    DynArray<int> reverseSortInput;
+    for (int value = 8; value >= 1; value--) reverseSortInput.push(value);
+    check(matchesReferenceSort(reverseSortInput),
+          "Heap Sort matches reference sort on a reverse-sorted array");
+
+    DynArray<int> randomSortInput;
+    for (int value = 0; value < 25; value++) randomSortInput.push(value * 3 - 10);
+    Rng sortRng(0xCAFEu);
+    sortRng.shuffle(randomSortInput);
+    check(matchesReferenceSort(randomSortInput),
+          "Heap Sort matches reference sort on a random array");
 
     MaxHeap silent(false);
     silent.load(sampleValues());
@@ -175,6 +260,24 @@ int runMaxHeapTests() {
     string unchanged = snapshot.serialize();
     check(!snapshot.deserialize("not-a-snapshot") && snapshot.serialize() == unchanged,
           "invalid heap snapshot is rejected without changing state");
+    check(!snapshot.deserialize("2|1,x,3") && snapshot.serialize() == unchanged,
+          "non-integer heap snapshot token is rejected");
+    check(!snapshot.deserialize("-1|1,2") && snapshot.serialize() == unchanged,
+          "negative heap size snapshot is rejected");
+    check(!snapshot.deserialize("1|") && snapshot.serialize() == unchanged,
+          "empty values with positive heap size are rejected");
+    check(snapshot.deserialize("0|") && snapshot.activeSize() == 0 && snapshot.size() == 0,
+          "empty heap snapshot restores cleanly");
+
+    MaxHeap brokenExtract;
+    brokenExtract.load(sampleValues());
+    brokenExtract.buildMaxHeap();
+    int pendingMaximum = 0;
+    brokenExtract.extractMaxNoHeapify(pendingMaximum);
+    check(pendingMaximum == 9 && brokenExtract.activeSize() == 5 && !brokenExtract.isMaxHeap(),
+          "extractMaxNoHeapify moves the max without restoring the heap");
+    brokenExtract.repairDown(0);
+    check(brokenExtract.isMaxHeap(), "repairDown restores the heap after extractMaxNoHeapify");
 
     return failed;
 }

@@ -86,9 +86,15 @@ void HeapLevelScreen::resetLevel() {
         repairLogic.load(level.data.values);
         message = "Select a BAD node, then choose a heapify direction.";
     } else {
-        operationLogic.load(level.data.values, level.task);
-        message = level.task == "heap_sort" ? "Run Heap Sort to secure the vault."
-                                             : "Extract the current maximum.";
+        operationLogic.load(level.data.values, level.task, level.rules.count);
+        if (level.task == "heap_race") {
+            message = "Extract and heapify under the alarm. Race goal: " +
+                      to_string(level.rules.count) + " maxima.";
+        } else if (level.task == "heap_sort") {
+            message = "Extract Max, then Heapify, until the array is ascending.";
+        } else {
+            message = "Extract the current maximum, then restore with Heapify.";
+        }
     }
     DynArray<int> values;
     copyCurrentValues(values);
@@ -100,8 +106,25 @@ void HeapLevelScreen::onShow() {
     resetLevel();
 }
 
+bool HeapLevelScreen::isFinalVaultLevel() const {
+    return level.task == "heap_sort";
+}
+
+string HeapLevelScreen::sortedArrayText() const {
+    DynArray<int> values;
+    copyCurrentValues(values);
+    string text;
+    for (int index = 0; index < values.size(); index++) {
+        if (index > 0) text += ", ";
+        text += to_string(values[index]);
+    }
+    return text;
+}
+
 void HeapLevelScreen::selectIndex(int index) {
-    if (!isBuildLevel()) {
+    if (isOperationLevel()) return;
+
+    if (isRepairLevel()) {
         if (index == firstSelection) {
             firstSelection = -1;
             heapView.setSelectedIndex(-1);
@@ -175,17 +198,38 @@ void HeapLevelScreen::chooseDirection(int direction) {
                                        : "Valid repair. Check the remaining BAD nodes.";
 }
 
-void HeapLevelScreen::performOperation() {
+void HeapLevelScreen::extractOperation() {
     DynArray<int> before;
     operationLogic.copyValues(before);
-    EventLog events = operationLogic.perform();
-    if (events.empty()) return;
-    heapView.load(before, operationLogic.activeSize() +
-                          (level.task == "heap_sort" ? before.size() : 1));
+    int beforeActive = operationLogic.activeSize();
+    EventLog events = operationLogic.extractMaximum();
+    if (events.empty()) {
+        message = operationLogic.isFailed() ? "Alarm full. Reset to try again."
+                                            : "Restore the heap with Heapify first.";
+        return;
+    }
+    heapView.load(before, beforeActive);
     animation.load(events);
     animation.play();
     waitingForAnimation = true;
-    message = level.task == "heap_sort" ? "Heap Sort running..." : "Extracting maximum...";
+    message = operationLogic.needsHeapify() ? "Maximum extracted. Now Heapify the root."
+                                            : "Final maximum extracted.";
+}
+
+void HeapLevelScreen::heapifyOperation() {
+    DynArray<int> before;
+    operationLogic.copyValues(before);
+    EventLog events = operationLogic.restoreHeap();
+    if (events.empty()) {
+        message = operationLogic.isFailed() ? "Alarm full. Reset to try again."
+                                            : "Extract a maximum before heapifying.";
+        return;
+    }
+    heapView.load(before, operationLogic.activeSize());
+    animation.load(events);
+    animation.play();
+    waitingForAnimation = true;
+    message = "Restoring the Max Heap property...";
 }
 
 void HeapLevelScreen::undoOperation() {
@@ -242,8 +286,12 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
     bool replayAtEnd = animation.completedCount() == animation.eventCount();
     bool canAct = levelLoaded && !currentComplete() && !currentFailed() &&
                   !waitingForAnimation && replayAtEnd;
-    if (isOperationLevel() && canAct && actionButton().contains(point)) {
-        performOperation();
+    if (isOperationLevel() && canAct && extractButton().contains(point)) {
+        extractOperation();
+        return ScreenId::NONE;
+    }
+    if (isOperationLevel() && canAct && heapifyButton().contains(point)) {
+        heapifyOperation();
         return ScreenId::NONE;
     }
     if (isRepairLevel() && canAct && upButton().contains(point)) {
@@ -270,10 +318,16 @@ void HeapLevelScreen::update(float seconds) {
         if (currentComplete()) {
             if (isBuildLevel()) message = "Vault activated. Max Heap complete.";
             else if (isRepairLevel()) message = "Security locks repaired. Max Heap restored.";
+            else if (level.task == "heap_race") message = "Race complete. Alarm beaten.";
             else message = "Vault cleared. Sorted sequence complete.";
+        } else if (isBuildLevel()) {
+            message = "Valid swap. Repair the next violation.";
+        } else if (isRepairLevel()) {
+            message = "Valid repair. Select the next BAD node.";
+        } else if (operationLogic.needsHeapify()) {
+            message = "Heapify the root to restore the Max Heap.";
         } else {
-            message = isBuildLevel() ? "Valid swap. Repair the next violation."
-                                     : "Valid repair. Select the next BAD node.";
+            message = "Extract the next maximum.";
         }
     }
 }
@@ -286,8 +340,12 @@ sf::FloatRect HeapLevelScreen::downButton() const {
     return {{950.f, 448.f}, {105.f, 38.f}};
 }
 
-sf::FloatRect HeapLevelScreen::actionButton() const {
-    return {{835.f, 448.f}, {220.f, 38.f}};
+sf::FloatRect HeapLevelScreen::extractButton() const {
+    return {{835.f, 448.f}, {105.f, 38.f}};
+}
+
+sf::FloatRect HeapLevelScreen::heapifyButton() const {
+    return {{950.f, 448.f}, {105.f, 38.f}};
 }
 
 sf::FloatRect HeapLevelScreen::undoButton() const {
@@ -340,19 +398,23 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
                               15, Palette::TEXT, false);
             renderer.drawText("1. Select a BAD node", {835.f, 188.f},
                               13, Palette::TEXT, false);
-        } else {
-            renderer.drawText(level.task == "heap_sort" ? "Complete the full Heap Sort."
-                                                         : "Extract maxima into sorted order.",
-                              {835.f, 158.f}, 15, Palette::TEXT, false);
-            renderer.drawText("Operate on the active heap", {835.f, 188.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("Sorted cells lock at the end", {835.f, 211.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("Z or Undo restores a snapshot", {835.f, 234.f},
-                              13, Palette::TEXT, false);
             renderer.drawText("2. Choose Up or Down", {835.f, 211.f},
                               13, Palette::TEXT, false);
             renderer.drawText("3. Prefer the shorter repair", {835.f, 234.f},
+                              13, Palette::TEXT, false);
+        } else {
+            string goal = "Extract maxima into sorted order.";
+            if (level.task == "heap_sort") goal = "Complete the full Heap Sort.";
+            if (level.task == "heap_race") {
+                goal = "Beat the alarm: extract " + to_string(level.rules.count) +
+                       " maxima.";
+            }
+            renderer.drawText(goal, {835.f, 158.f}, 15, Palette::TEXT, false);
+            renderer.drawText("1. Extract Max from the root", {835.f, 188.f},
+                              13, Palette::TEXT, false);
+            renderer.drawText("2. Heapify to restore the heap", {835.f, 211.f},
+                              13, Palette::TEXT, false);
+            renderer.drawText("3. Repeat until the goal is met", {835.f, 234.f},
                               13, Palette::TEXT, false);
         }
 
@@ -376,8 +438,8 @@ void HeapLevelScreen::draw(sf::RenderWindow& window) {
     }
     if (levelLoaded && isOperationLevel() && !currentComplete()) {
         drawButton(window, renderer, undoButton(), "Undo");
-        drawButton(window, renderer, actionButton(),
-                   level.task == "heap_sort" ? "Run Heap Sort" : "Extract Max");
+        drawButton(window, renderer, extractButton(), "Extract Max");
+        drawButton(window, renderer, heapifyButton(), "Heapify");
     }
     drawButton(window, renderer, resetButton(), "Reset Level");
     if (levelLoaded && currentComplete()) {

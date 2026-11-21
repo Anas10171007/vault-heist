@@ -40,7 +40,7 @@
       "task": "heap_race",
       "seed": 4744,
       "data": {"source": "explicit", "values": [99, 88, 93, 61, 72, 84, 90, 25, 40]},
-      "rules": {}
+      "rules": {"count": 3}
     },
     {
       "id": "4.5",
