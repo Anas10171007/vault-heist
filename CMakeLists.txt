@@ -49,3 +49,9 @@ add_executable(heapviewdemo
     src/gui/widgets/HeapView.cpp)
 target_include_directories(heapviewdemo PRIVATE src)
 target_link_libraries(heapviewdemo PRIVATE model SFML::Graphics)
+add_executable(treeanimdemo
+    tools/tree_anim_demo.cpp
+    src/gui/core/Renderer.cpp
+    src/gui/tree/TreeAnimationView.cpp)
+target_include_directories(treeanimdemo PRIVATE src)
+target_link_libraries(treeanimdemo PRIVATE gamecore SFML::Graphics)

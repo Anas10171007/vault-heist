@@ -414,6 +414,44 @@ TreeNode* BinaryTree::findById(int nodeId) const {
     return nullptr;
 }
 
+TreeNode* BinaryTree::findByValue(int value) const {
+    if (rootNode == nullptr) {
+        return nullptr;
+    }
+    Stack<TreeNode*> pending;
+    pending.push(rootNode);
+    while (!pending.empty()) {
+        TreeNode* current = pending.pop();
+        if (current->value == value) {
+            return current;
+        }
+        if (current->right != nullptr) {
+            pending.push(current->right);
+        }
+        if (current->left != nullptr) {
+            pending.push(current->left);
+        }
+    }
+    return nullptr;
+}
+
+bool BinaryTree::swapChildren(int nodeId) {
+    TreeNode* node = findById(nodeId);
+    if (node == nullptr) {
+        return false;
+    }
+    TreeNode* temporary = node->left;
+    node->left = node->right;
+    node->right = temporary;
+    if (node->left != nullptr) {
+        node->left->parent = node;
+    }
+    if (node->right != nullptr) {
+        node->right->parent = node;
+    }
+    return true;
+}
+
 TreeNode* BinaryTree::createNode(int value) {
     return new TreeNode(idSource.next(), value);
 }

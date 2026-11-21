@@ -11,6 +11,46 @@
       "seed": 2101,
       "data": {"source": "explicit", "values": [50, 30, 70, 20, 40, 60, 80]},
       "rules": {"target": 60}
+    },
+    {
+      "id": "2.2",
+      "title": "Plant the evidence",
+      "mission": "Walk the search path for the new key, then confirm the insertion.",
+      "structure": "bst",
+      "task": "bst_insert",
+      "seed": 2202,
+      "data": {"source": "generate", "shape": "random", "size": 10, "min": 1, "max": 99},
+      "rules": {"target": 100}
+    },
+    {
+      "id": "2.3",
+      "title": "Cut the guard loose",
+      "mission": "Name the delete case first, then confirm the removal.",
+      "structure": "bst",
+      "task": "bst_delete",
+      "seed": 2303,
+      "data": {"source": "explicit", "values": [50, 30, 70, 20, 40, 60, 80]},
+      "rules": {"target": 50}
+    },
+    {
+      "id": "2.4",
+      "title": "Sweep the corridor",
+      "mission": "Click every key in the range; whole subtrees outside it are pruned for a bonus.",
+      "structure": "bst",
+      "task": "bst_range",
+      "seed": 2404,
+      "data": {"source": "explicit", "values": [50, 30, 70, 20, 40, 60, 80]},
+      "rules": {"lo": 30, "hi": 70}
+    },
+    {
+      "id": "2.5",
+      "title": "Boss: the long chain",
+      "mission": "Search three checkpoints in a sorted chain. Each checkpoint shrinks the alarm capacity.",
+      "structure": "bst",
+      "task": "bst_boss",
+      "seed": 2505,
+      "data": {"source": "generate", "shape": "sorted", "size": 12, "min": 1, "max": 99},
+      "rules": {}
     }
   ]
 }

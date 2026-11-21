@@ -23,6 +23,10 @@ and keep parent pointers correct.
 is overridden to produce `BSTNode` objects, so `deserialize` and reconstruction
 also create BST nodes.
 
+`detachNode` requires a node with at most one child. The protected hooks
+`afterInsert(inserted, events)` and `afterRemoval(parentOfRemoved, events)` are
+no-ops in BST and exist for AVLTree rebalancing.
+
 ## Events per operation
 
 - `insert`: COMPARE for each node on the descent, then INSERT(new id, parent id,
