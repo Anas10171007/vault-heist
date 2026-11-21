@@ -8,7 +8,7 @@ namespace vh {
 class AlarmMeter {
 public:
     void draw(sf::RenderTarget& target, Renderer& renderer, const ScoreSystem& score,
-              sf::Vector2f position, float width) const;
+              sf::Vector2f position, float width, float timeSeconds = 0.f) const;
 };
 
 }

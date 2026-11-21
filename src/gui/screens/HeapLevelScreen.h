@@ -18,7 +18,7 @@ class HeapLevelScreen : public Screen {
 public:
     HeapLevelScreen(Theme& theme);
     int handleEvent(const sf::Event& event, sf::RenderWindow& window) override;
-    void update(float seconds) override;
+    int update(float seconds) override;
     void draw(sf::RenderWindow& window) override;
     void onShow() override;
     bool selectLevel(const string& id);
@@ -43,12 +43,10 @@ private:
 
     void resetLevel();
     void selectIndex(int index);
-    void chooseDirection(int direction);
     bool loadLevel(const string& id);
     bool isBuildLevel() const;
     bool isRepairLevel() const;
     bool isOperationLevel() const;
-    void extractOperation();
     void undoOperation();
     void showHint();
     void adjustSpeed(bool faster);

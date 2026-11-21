@@ -14,7 +14,8 @@ ScreenManager::ScreenManager(Theme& theme) {
         screens[i] = nullptr;
     }
 
-    StubScreen* menu = new StubScreen(theme, "Vault Heist", "Choose where to enter the living vault");
+    StubScreen* menu = new StubScreen(theme, "Vault Heist",
+                                      "Breach the living vault. Trees, heaps, one alarm.");
     menu->addButton("Campaign", ScreenId::CAMPAIGN_MAP);
     menu->addButton("Endless", ScreenId::ENDLESS);
     menu->addButton("Sandbox", ScreenId::SANDBOX);
@@ -73,7 +74,12 @@ void ScreenManager::handleEvent(const sf::Event& event, sf::RenderWindow& window
 }
 
 void ScreenManager::update(float deltaSeconds) {
-    screens[activeScreen]->update(deltaSeconds);
+    int requestedScreen = screens[activeScreen]->update(deltaSeconds);
+    if (requestedScreen == ScreenId::QUIT) {
+        // Quit is handled from events; ignore here.
+    } else if (requestedScreen != ScreenId::NONE) {
+        show(requestedScreen);
+    }
 }
 
 void ScreenManager::draw(sf::RenderWindow& window) {

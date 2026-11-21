@@ -8,20 +8,14 @@ using namespace std;
 
 namespace vh {
 
-struct HeapDirection {
-    static constexpr int UP = 0;
-    static constexpr int DOWN = 1;
-};
-
 class HeapRepairLevel {
 public:
     HeapRepairLevel();
 
     void load(const DynArray<int>& values);
-    EventLog chooseRepair(int index, int direction, bool& accepted);
+    EventLog chooseSwap(int first, int second, bool& accepted);
     bool undo();
-    bool needsUp(int index) const;
-    bool needsDown(int index) const;
+    bool isValidSwap(int first, int second) const;
     bool isComplete() const;
     bool isFailed() const;
     int size() const;

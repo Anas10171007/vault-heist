@@ -1,4 +1,5 @@
 #include "gui/screens/StubScreen.h"
+#include "gui/core/Renderer.h"
 
 namespace vh {
 
@@ -10,10 +11,7 @@ StubScreen::StubScreen(Theme& theme, const string& title, const string& descript
 }
 
 void StubScreen::addButton(const string& label, int targetScreen) {
-    if (buttonCount >= MAX_BUTTONS) {
-        return;
-    }
-
+    if (buttonCount >= MAX_BUTTONS) return;
     buttons[buttonCount].label = label;
     buttons[buttonCount].targetScreen = targetScreen;
     buttonCount++;
@@ -31,54 +29,43 @@ int StubScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
             return buttons[i].targetScreen;
         }
     }
-
     return ScreenId::NONE;
 }
 
-void StubScreen::update(float deltaSeconds) {
+int StubScreen::update(float deltaSeconds) {
     (void)deltaSeconds;
+    return ScreenId::NONE;
 }
 
 void StubScreen::draw(sf::RenderWindow& window) {
-    sf::RectangleShape panel = theme.makePanel({220.f, 75.f}, {660.f, 570.f});
-    window.draw(panel);
+    theme.drawBackdrop(window);
+    Renderer renderer(window, theme.getFont());
 
-    sf::Text titleLabel = theme.makeLabel(title, 42, Palette::TARGET);
-    sf::FloatRect titleSize = titleLabel.getLocalBounds();
-    titleLabel.setOrigin({titleSize.position.x + titleSize.size.x / 2.f, titleSize.position.y});
-    titleLabel.setPosition({550.f, 105.f});
-    window.draw(titleLabel);
+    // Brand-first hero: product name dominates the first viewport.
+    renderer.drawText("VAULT HEIST", {550.f, 120.f}, 54, Palette::BRASS, true);
+    renderer.drawText(title == "Vault Heist" ? "THE LIVING VAULT" : title,
+                      {550.f, 178.f}, 18, Palette::TEXT, true);
+    renderer.drawText(description, {550.f, 214.f}, 15, Palette::MUTED, true);
 
-    sf::Text descriptionLabel = theme.makeLabel(description, 20, Palette::TEXT);
-    sf::FloatRect descriptionSize = descriptionLabel.getLocalBounds();
-    descriptionLabel.setOrigin({descriptionSize.position.x + descriptionSize.size.x / 2.f,
-                                descriptionSize.position.y});
-    descriptionLabel.setPosition({550.f, 185.f});
-    window.draw(descriptionLabel);
+    sf::RectangleShape rule({220.f, 2.f});
+    rule.setPosition({440.f, 246.f});
+    rule.setFillColor(Palette::BRASS);
+    window.draw(rule);
 
     for (int i = 0; i < buttonCount; i++) {
         sf::FloatRect bounds = buttonBounds(i);
-        sf::RectangleShape button = theme.makeButton(bounds.position, bounds.size);
-        window.draw(button);
-
-        sf::Text buttonLabel = theme.makeLabel(buttons[i].label, 22, Palette::TEXT);
-        sf::FloatRect labelSize = buttonLabel.getLocalBounds();
-        buttonLabel.setOrigin({labelSize.position.x + labelSize.size.x / 2.f,
-                               labelSize.position.y + labelSize.size.y / 2.f});
-        buttonLabel.setPosition({bounds.position.x + bounds.size.x / 2.f,
-                                 bounds.position.y + bounds.size.y / 2.f - 4.f});
-        window.draw(buttonLabel);
+        int kind = i == 0 ? ButtonKind::PRIMARY : ButtonKind::SECONDARY;
+        if (buttons[i].label == "Quit") kind = ButtonKind::GHOST;
+        theme.drawButton(window, theme.getFont(), bounds, buttons[i].label, kind,
+                         theme.hovered(window, bounds));
     }
 
-    sf::Text help = theme.makeLabel("Click a button to change screen  |  Esc: Main Menu", 16, Palette::MUTED);
-    sf::FloatRect helpSize = help.getLocalBounds();
-    help.setOrigin({helpSize.position.x + helpSize.size.x / 2.f, helpSize.position.y});
-    help.setPosition({550.f, 605.f});
-    window.draw(help);
+    renderer.drawText("Click to enter  ·  Esc returns to menu", {550.f, 660.f}, 13,
+                      Palette::MUTED, true);
 }
 
 sf::FloatRect StubScreen::buttonBounds(int index) const {
-    return sf::FloatRect({350.f, 255.f + index * 55.f}, {400.f, 44.f});
+    return sf::FloatRect({375.f, 280.f + index * 52.f}, {350.f, 44.f});
 }
 
 }

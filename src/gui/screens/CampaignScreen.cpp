@@ -13,9 +13,16 @@ CampaignScreen::CampaignScreen(Theme& sharedTheme, GameSession& sharedSession)
 }
 
 sf::FloatRect CampaignScreen::levelBounds(int index) const {
-    int column = index / 10;
-    int row = index % 10;
-    return {{105.f + column * 470.f, 115.f + row * 50.f}, {420.f, 40.f}};
+    int act = levels.at(index).act;
+    if (act < 1) act = 1;
+    if (act > 4) act = 4;
+    int slot = 0;
+    for (int i = 0; i < index; i++) {
+        if (levels.at(i).act == act) slot++;
+    }
+    float col = 70.f + (act - 1) * 255.f;
+    float row = 150.f + slot * 52.f;
+    return {{col, row}, {236.f, 44.f}};
 }
 
 bool CampaignScreen::isUnlocked(int index) const {
@@ -40,32 +47,41 @@ int CampaignScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window
 }
 
 void CampaignScreen::draw(sf::RenderWindow& window) {
+    theme.drawBackdrop(window);
     Renderer renderer(window, theme.getFont());
-    window.draw(theme.makePanel({70.f, 45.f}, {960.f, 610.f}));
-    renderer.drawText("CAMPAIGN MAP", {550.f, 70.f}, 30, Palette::TARGET, true);
+    theme.drawPanel(window, {{40.f, 28.f}, {1020.f, 640.f}});
+
+    renderer.drawText("CAMPAIGN", {550.f, 52.f}, 34, Palette::BRASS, true);
+    renderer.drawText("Clear a mission to unlock the next  ·  Backspace: menu",
+                      {550.f, 92.f}, 13, Palette::MUTED, true);
+
     if (!loaded) {
         renderer.drawText("Could not load level data", {550.f, 330.f}, 20, Palette::VIOLATION, true);
         return;
     }
 
+    const char* actNames[4] = {"ACT 1  Binary", "ACT 2  BST", "ACT 3  AVL", "ACT 4  Heap"};
+    for (int act = 1; act <= 4; act++) {
+        float x = 70.f + (act - 1) * 255.f;
+        renderer.drawText(actNames[act - 1], {x + 118.f, 124.f}, 13, Palette::VISITED, true);
+    }
+
     for (int index = 0; index < levels.size(); index++) {
         const LevelDef& level = levels.at(index);
         sf::FloatRect bounds = levelBounds(index);
-        window.draw(theme.makeButton(bounds.position, bounds.size));
-
         bool unlocked = isUnlocked(index);
         int best = session.bestStarsFor(level.id);
+        int kind = unlocked ? ButtonKind::SECONDARY : ButtonKind::GHOST;
+        if (unlocked && best >= 3) kind = ButtonKind::PRIMARY;
+        theme.drawButton(window, theme.getFont(), bounds, "", kind,
+                         unlocked && theme.hovered(window, bounds));
+
         string stars;
-        for (int s = 0; s < 3; s++) stars += s < best ? "*" : "-";
-
-        string label = level.id + "  " + level.title + "  [" + stars + "]";
-        if (!unlocked) label = level.id + "  LOCKED";
-
-        renderer.drawText(label, bounds.position + sf::Vector2f(14.f, 10.f),
-                          15, unlocked ? Palette::TEXT : Palette::MUTED, false);
+        for (int s = 0; s < 3; s++) stars += s < best ? "*" : ".";
+        string label = unlocked ? (level.id + "  " + stars) : (level.id + "  LOCK");
+        renderer.drawText(label, bounds.position + sf::Vector2f(12.f, 12.f), 14,
+                          unlocked ? Palette::TEXT : Palette::MUTED, false);
     }
-    renderer.drawText("Act order unlocks after earning at least 1 star  |  Backspace: menu",
-                      {550.f, 625.f}, 14, Palette::MUTED, true);
 }
 
 }

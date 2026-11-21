@@ -14,7 +14,7 @@ public:
     LevelScreen(Theme& theme, GameSession& session);
     ~LevelScreen() override;
     int handleEvent(const sf::Event& event, sf::RenderWindow& window) override;
-    void update(float seconds) override;
+    int update(float seconds) override;
     void draw(sf::RenderWindow& window) override;
     void onShow() override;
 private:

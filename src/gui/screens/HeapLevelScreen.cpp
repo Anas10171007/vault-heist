@@ -84,16 +84,16 @@ void HeapLevelScreen::resetLevel() {
         message = "Select a smaller parent, then its largest child.";
     } else if (isRepairLevel()) {
         repairLogic.load(level.data.values);
-        message = "Select a BAD node, then choose a heapify direction.";
+        message = "Select a smaller parent, then its largest child.";
     } else {
         operationLogic.load(level.data.values, level.task, level.rules.count);
         if (level.task == "heap_race") {
-            message = "Select the root, Extract Max, then swap to restore. Goal: " +
+            message = "Select root + last leaf to extract. Goal: " +
                       to_string(level.rules.count) + " maxima.";
         } else if (level.task == "heap_sort") {
-            message = "Select the root, Extract Max, then swap BAD pairs until sorted.";
+            message = "Select root + last leaf, then restore BAD pairs.";
         } else {
-            message = "Select the root, then Extract Max. Restore with parent-child swaps.";
+            message = "Select root and last active leaf to extract.";
         }
     }
     DynArray<int> values;
@@ -122,43 +122,21 @@ string HeapLevelScreen::sortedArrayText() const {
 }
 
 void HeapLevelScreen::selectIndex(int index) {
-    if (isRepairLevel()) {
-        if (index == firstSelection) {
-            firstSelection = -1;
-            heapView.setSelectedIndex(-1);
-            message = "Selection cleared.";
-        } else {
+    if (isOperationLevel()) {
+        if (firstSelection < 0) {
             firstSelection = index;
             heapView.setSelectedIndex(index);
-            message = "Choose Heapify Up or Heapify Down.";
-        }
-        return;
-    }
-
-    // Operation levels: select the root to Extract, or two nodes to restore.
-    if (isOperationLevel()) {
-        if (!operationLogic.needsRestore()) {
-            if (index == firstSelection) {
-                firstSelection = -1;
-                heapView.setSelectedIndex(-1);
-                message = "Selection cleared.";
+            if (operationLogic.needsRestore()) {
+                message = "Now select the connected larger child.";
+            } else if (operationLogic.activeSize() == 1) {
+                message = "Only the root remains. Click it again to extract.";
             } else {
-                firstSelection = index;
-                heapView.setSelectedIndex(index);
-                if (index == 0) message = "Root selected. Click Extract Max.";
-                else message = "Select the root (top node) before Extract Max.";
+                message = "Now select the last active leaf (end of the heap).";
             }
             return;
         }
 
-        if (firstSelection < 0) {
-            firstSelection = index;
-            heapView.setSelectedIndex(index);
-            message = "Now select the connected larger child.";
-            return;
-        }
-
-        if (index == firstSelection) {
+        if (index == firstSelection && operationLogic.activeSize() != 1) {
             firstSelection = -1;
             heapView.setSelectedIndex(-1);
             message = "Selection cleared.";
@@ -168,14 +146,25 @@ void HeapLevelScreen::selectIndex(int index) {
         DynArray<int> before;
         operationLogic.copyValues(before);
         int beforeActive = operationLogic.activeSize();
+        bool restoring = operationLogic.needsRestore();
         bool accepted = false;
-        EventLog events = operationLogic.chooseSwap(firstSelection, index, accepted);
+        EventLog events;
+        if (restoring) {
+            events = operationLogic.chooseSwap(firstSelection, index, accepted);
+        } else {
+            events = operationLogic.chooseExtract(firstSelection, index, accepted);
+        }
         firstSelection = -1;
         heapView.setSelectedIndex(-1);
 
         if (!accepted) {
-            message = operationLogic.isFailed() ? "Alarm full. Reset to try again."
-                                                : "Invalid parent-child swap.";
+            if (operationLogic.isFailed()) {
+                message = "Alarm full. Reset to try again.";
+            } else if (restoring) {
+                message = "Invalid parent-child swap.";
+            } else {
+                message = "Extract needs the root and the last active leaf.";
+            }
             return;
         }
 
@@ -183,12 +172,19 @@ void HeapLevelScreen::selectIndex(int index) {
         animation.load(events);
         animation.play();
         waitingForAnimation = true;
-        message = operationLogic.needsRestore()
-                      ? "Valid swap. Keep repairing BAD pairs."
-                      : "Heap restored. Select the root to extract again.";
+        if (restoring) {
+            message = operationLogic.needsRestore()
+                          ? "Valid swap. Keep repairing BAD pairs."
+                          : "Heap restored. Select root + last leaf again.";
+        } else if (operationLogic.needsRestore()) {
+            message = "Extracted. Swap BAD parent-child pairs to restore.";
+        } else {
+            message = "Final maximum extracted.";
+        }
         return;
     }
 
+    // Build and repair: two-click parent-child swaps.
     if (firstSelection < 0) {
         firstSelection = index;
         heapView.setSelectedIndex(index);
@@ -204,15 +200,21 @@ void HeapLevelScreen::selectIndex(int index) {
     }
 
     DynArray<int> before;
-    buildLogic.copyValues(before);
     bool accepted = false;
-    EventLog events = buildLogic.chooseSwap(firstSelection, index, accepted);
+    EventLog events;
+    if (isRepairLevel()) {
+        repairLogic.copyValues(before);
+        events = repairLogic.chooseSwap(firstSelection, index, accepted);
+    } else {
+        buildLogic.copyValues(before);
+        events = buildLogic.chooseSwap(firstSelection, index, accepted);
+    }
     firstSelection = -1;
     heapView.setSelectedIndex(-1);
 
     if (!accepted) {
-        message = buildLogic.isFailed() ? "Alarm full. Reset to try again."
-                                        : "Invalid parent-child swap.";
+        bool failed = isRepairLevel() ? repairLogic.isFailed() : buildLogic.isFailed();
+        message = failed ? "Alarm full. Reset to try again." : "Invalid parent-child swap.";
         return;
     }
 
@@ -220,62 +222,8 @@ void HeapLevelScreen::selectIndex(int index) {
     animation.load(events);
     animation.play();
     waitingForAnimation = true;
-    message = buildLogic.isComplete() ? "Final valid swap..." : "Valid swap.";
-}
-
-void HeapLevelScreen::chooseDirection(int direction) {
-    if (firstSelection < 0) {
-        message = "Select a heap node first.";
-        return;
-    }
-
-    DynArray<int> before;
-    repairLogic.copyValues(before);
-    bool accepted = false;
-    EventLog events = repairLogic.chooseRepair(firstSelection, direction, accepted);
-    firstSelection = -1;
-    heapView.setSelectedIndex(-1);
-
-    if (!accepted) {
-        message = repairLogic.isFailed() ? "Alarm full. Reset to try again."
-                                         : "That node does not need this direction.";
-        return;
-    }
-
-    heapView.load(before, before.size());
-    animation.load(events);
-    animation.play();
-    waitingForAnimation = true;
-    message = repairLogic.isComplete() ? "Repairing the final violation..."
-                                       : "Valid repair. Check the remaining BAD nodes.";
-}
-
-void HeapLevelScreen::extractOperation() {
-    if (firstSelection != 0) {
-        message = "Select the root (top node) first, then Extract Max.";
-        return;
-    }
-
-    DynArray<int> before;
-    operationLogic.copyValues(before);
-    int beforeActive = operationLogic.activeSize();
-    EventLog events = operationLogic.extractMaximum();
-    firstSelection = -1;
-    heapView.setSelectedIndex(-1);
-
-    if (events.empty()) {
-        message = operationLogic.isFailed() ? "Alarm full. Reset to try again."
-                                            : "Restore the heap with swaps first.";
-        return;
-    }
-
-    heapView.load(before, beforeActive);
-    animation.load(events);
-    animation.play();
-    waitingForAnimation = true;
-    message = operationLogic.needsRestore()
-                  ? "Maximum extracted. Swap BAD parent-child pairs to restore."
-                  : "Final maximum extracted.";
+    bool done = isRepairLevel() ? repairLogic.isComplete() : buildLogic.isComplete();
+    message = done ? "Final valid swap..." : "Valid swap.";
 }
 
 void HeapLevelScreen::undoOperation() {
@@ -308,14 +256,13 @@ void HeapLevelScreen::undoOperation() {
 }
 
 void HeapLevelScreen::showHint() {
-    if (isBuildLevel()) {
+    if (isBuildLevel() || isRepairLevel()) {
         message = "Hint: pick a BAD parent, then its largest child.";
-    } else if (isRepairLevel()) {
-        message = "Hint: select a BAD node, then the shorter heapify direction.";
     } else if (operationLogic.needsRestore()) {
         message = "Hint: swap each BAD parent with its larger child.";
     } else {
-        message = "Hint: select the root (index 0), then Extract Max.";
+        int last = operationLogic.lastActiveIndex();
+        message = "Hint: select root (0), then last leaf (" + to_string(last) + ").";
     }
 }
 
@@ -329,12 +276,12 @@ void HeapLevelScreen::adjustSpeed(bool faster) {
 
 string HeapLevelScreen::objectiveText() const {
     if (isBuildLevel()) return "Build a Max Heap by swapping BAD pairs.";
-    if (isRepairLevel()) return "Repair the disturbed heap with Up/Down.";
+    if (isRepairLevel()) return "Repair the disturbed heap by swapping BAD pairs.";
     if (level.task == "heap_race") {
-        return "Extract " + to_string(level.rules.count) + " maxima before alarm.";
+        return "Extract " + to_string(level.rules.count) + " maxima (root+last leaf).";
     }
-    if (level.task == "heap_sort") return "Finish Heap Sort: extract and restore.";
-    return "Extract max, then restore with swaps.";
+    if (level.task == "heap_sort") return "Heap Sort: root+last leaf, then restore.";
+    return "Select root + last leaf, then restore swaps.";
 }
 
 int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
@@ -355,9 +302,6 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
             else animation.play();
         } else if (key->code == sf::Keyboard::Key::Right) animation.stepForward();
         else if (key->code == sf::Keyboard::Key::Left) animation.stepBackward();
-        else if (key->code == sf::Keyboard::Key::Enter && currentComplete()) {
-            return ScreenId::RESULT;
-        }
     }
 
     const sf::Event::MouseButtonPressed* click = event.getIf<sf::Event::MouseButtonPressed>();
@@ -392,34 +336,19 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
         return ScreenId::NONE;
     }
     if (LevelChrome::exitButton().contains(point)) return ScreenId::CAMPAIGN_MAP;
-    if (levelLoaded && currentComplete() && LevelChrome::continueButton().contains(point)) {
-        return ScreenId::RESULT;
-    }
 
     bool replayAtEnd = animation.completedCount() == animation.eventCount();
     bool canAct = levelLoaded && !currentComplete() && !currentFailed() &&
                   !waitingForAnimation && replayAtEnd;
-    if (isOperationLevel() && canAct && LevelChrome::opButtonWide().contains(point)) {
-        extractOperation();
-        return ScreenId::NONE;
-    }
-    if (isRepairLevel() && canAct && LevelChrome::opButtonA().contains(point)) {
-        chooseDirection(HeapDirection::UP);
-        return ScreenId::NONE;
-    }
-    if (isRepairLevel() && canAct && LevelChrome::opButtonB().contains(point)) {
-        chooseDirection(HeapDirection::DOWN);
-        return ScreenId::NONE;
-    }
     if (!canAct) return ScreenId::NONE;
 
-    int index = heapView.hitTest(point, {40.f, 105.f}, 750.f,
-                                 {40.f, 520.f}, 750.f);
+    int index = heapView.hitTest(point, {48.f, 70.f}, 700.f,
+                                 {48.f, 520.f}, 700.f);
     if (index >= 0) selectIndex(index);
     return ScreenId::NONE;
 }
 
-void HeapLevelScreen::update(float seconds) {
+int HeapLevelScreen::update(float seconds) {
     animation.update(seconds);
     if (waitingForAnimation && !animation.isPlaying() &&
         animation.completedCount() == animation.eventCount()) {
@@ -429,55 +358,58 @@ void HeapLevelScreen::update(float seconds) {
             else if (isRepairLevel()) message = "Security locks repaired. Max Heap restored.";
             else if (level.task == "heap_race") message = "Race complete. Alarm beaten.";
             else message = "Vault cleared. Sorted sequence complete.";
-        } else if (isBuildLevel()) {
+            return ScreenId::RESULT;
+        } else if (isBuildLevel() || isRepairLevel()) {
             message = "Valid swap. Repair the next violation.";
-        } else if (isRepairLevel()) {
-            message = "Valid repair. Select the next BAD node.";
         } else if (operationLogic.needsRestore()) {
             message = "Swap BAD parent-child pairs to restore the Max Heap.";
         } else {
-            message = "Select the root, then click Extract Max.";
+            message = "Select root and last active leaf to extract.";
         }
     }
+    return ScreenId::NONE;
 }
 
 void HeapLevelScreen::draw(sf::RenderWindow& window) {
+    theme.drawBackdrop(window);
     Renderer renderer(window, theme.getFont());
+    chrome.drawCanvasPanel(window, theme);
     chrome.drawSidePanel(window, theme);
 
     if (levelLoaded) {
-        heapView.draw(renderer, {40.f, 105.f}, 750.f, {40.f, 520.f}, 750.f);
-        chrome.drawHud(window, renderer, currentScore(), level.id, level.title,
+        heapView.draw(renderer, {48.f, 70.f}, 700.f, {48.f, 520.f}, 700.f);
+        chrome.drawHud(window, renderer, theme, currentScore(), level.id, level.title,
                        objectiveText(), message, currentFailed());
         int highlight = animation.completedCount() - 1;
         chrome.drawEventLog(renderer, animation.log(), highlight);
     } else {
-        renderer.drawText("ACT 4 LOAD ERROR", {820.f, 80.f},
+        renderer.drawText("ACT 4 LOAD ERROR", {804.f, 80.f},
                           20, Palette::VIOLATION, false);
-        renderer.drawText(message, {820.f, 125.f}, 13, Palette::TEXT, false);
+        renderer.drawText(message, {804.f, 125.f}, 13, Palette::TEXT, false);
     }
 
-    if (levelLoaded && isRepairLevel() && !currentComplete()) {
-        chrome.drawButton(window, theme, renderer, LevelChrome::opButtonA(), "Up");
-        chrome.drawButton(window, theme, renderer, LevelChrome::opButtonB(), "Down");
-    }
     if (levelLoaded && isOperationLevel() && !currentComplete()) {
-        chrome.drawButton(window, theme, renderer, LevelChrome::opButtonWide(), "Extract Max");
+        string guide = operationLogic.needsRestore()
+                           ? "Restore: swap BAD pairs"
+                           : ("Extract: root + leaf " +
+                              to_string(operationLogic.lastActiveIndex()));
+        renderer.drawText(guide, {804.f, 330.f}, 12, Palette::VISITED, false);
     }
     if (levelLoaded && !currentComplete()) {
         chrome.drawButton(window, theme, renderer, LevelChrome::undoButton(), "Undo [Z]");
     }
     chrome.drawButton(window, theme, renderer, LevelChrome::hintButton(), "Hint [H]");
     chrome.drawButton(window, theme, renderer, LevelChrome::replayButton(), "Replay");
-    chrome.drawButton(window, theme, renderer, LevelChrome::resetButton(), "Reset [R]");
-    chrome.drawButton(window, theme, renderer, LevelChrome::slowerButton(), "Slower");
-    chrome.drawButton(window, theme, renderer, LevelChrome::fasterButton(), "Faster");
-    chrome.drawButton(window, theme, renderer, LevelChrome::exitButton(), "Campaign [Esc]");
-    if (levelLoaded && currentComplete()) {
-        chrome.drawButton(window, theme, renderer, LevelChrome::continueButton(), "View Result");
-    }
+    chrome.drawButton(window, theme, renderer, LevelChrome::resetButton(), "Reset [R]",
+                      ButtonKind::DANGER);
+    chrome.drawButton(window, theme, renderer, LevelChrome::slowerButton(), "Slower",
+                      ButtonKind::GHOST);
+    chrome.drawButton(window, theme, renderer, LevelChrome::fasterButton(), "Faster",
+                      ButtonKind::GHOST);
+    chrome.drawButton(window, theme, renderer, LevelChrome::exitButton(), "Campaign [Esc]",
+                      ButtonKind::SECONDARY);
     chrome.drawHelp(renderer,
-                    "Z undo | H hint | P replay | Space pause | arrows step | Esc map");
+                    "Z undo · H hint · P replay · Space pause · arrows step · Esc map");
 }
 
 }

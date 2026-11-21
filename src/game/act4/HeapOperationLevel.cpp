@@ -22,7 +22,6 @@ int HeapOperationLevel::countOptimalSteps(const DynArray<int>& values) const {
         solution.extractMaxNoHeapify(maximum);
         steps++;
 
-        // After extract, each sift-down swap is one player click (same as 4.1).
         if (solution.activeSize() > 0 && !solution.isMaxHeap()) {
             int swapsBefore = solution.swaps();
             solution.repairDown(0);
@@ -105,15 +104,28 @@ bool HeapOperationLevel::isValidSwap(int first, int second) const {
     return child == largestChild;
 }
 
-EventLog HeapOperationLevel::extractMaximum() {
+bool HeapOperationLevel::isValidExtractPair(int first, int second) const {
+    int last = lastActiveIndex();
+    if (last < 0) return false;
+    if (last == 0) return first == 0 && second == 0;
+    return (first == 0 && second == last) || (second == 0 && first == last);
+}
+
+EventLog HeapOperationLevel::chooseExtract(int first, int second, bool& accepted) {
+    accepted = false;
     if (complete || scoring.isFailed()) return EventLog();
 
-    // Must finish restoring with swaps before the next extract.
     if (awaitingRestore || !heap.isMaxHeap() || heap.activeSize() <= 0) {
         scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
         return EventLog();
     }
 
+    if (!isValidExtractPair(first, second)) {
+        scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
+        return EventLog();
+    }
+
+    accepted = true;
     pushSnapshot();
     scoring.addStep();
 
@@ -169,6 +181,9 @@ bool HeapOperationLevel::isComplete() const { return complete; }
 bool HeapOperationLevel::isFailed() const { return scoring.isFailed(); }
 bool HeapOperationLevel::needsRestore() const { return awaitingRestore; }
 int HeapOperationLevel::activeSize() const { return heap.activeSize(); }
+int HeapOperationLevel::lastActiveIndex() const {
+    return heap.activeSize() > 0 ? heap.activeSize() - 1 : -1;
+}
 
 void HeapOperationLevel::copyValues(DynArray<int>& output) const {
     output.clear();

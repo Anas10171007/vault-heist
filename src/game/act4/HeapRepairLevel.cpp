@@ -9,32 +9,45 @@ HeapRepairLevel::HeapRepairLevel() : scoring(1), complete(false) {}
 void HeapRepairLevel::load(const DynArray<int>& values) {
     heap.load(values);
     history.clear();
-    scoring.reset(1);
+    MaxHeap solution(false);
+    solution.load(values);
+    solution.buildMaxHeap();
+    scoring.reset(solution.swaps());
     complete = heap.isMaxHeap();
     if (complete) scoring.finish();
 }
 
-bool HeapRepairLevel::needsUp(int index) const {
-    if (index <= 0 || index >= heap.activeSize()) return false;
-    int parent = (index - 1) / 2;
-    return heap.at(index) > heap.at(parent);
+bool HeapRepairLevel::isValidSwap(int first, int second) const {
+    if (first < 0 || second < 0 || first >= heap.activeSize() ||
+        second >= heap.activeSize() || first == second) {
+        return false;
+    }
+
+    int parent = first;
+    int child = second;
+    if ((first - 1) / 2 == second && first > 0) {
+        parent = second;
+        child = first;
+    } else if ((second - 1) / 2 != first || second <= 0) {
+        return false;
+    }
+
+    if (heap.at(child) <= heap.at(parent)) return false;
+
+    int left = parent * 2 + 1;
+    int right = parent * 2 + 2;
+    int largestChild = left;
+    if (right < heap.activeSize() && heap.at(right) > heap.at(left)) {
+        largestChild = right;
+    }
+    return child == largestChild;
 }
 
-bool HeapRepairLevel::needsDown(int index) const {
-    if (index < 0 || index >= heap.activeSize()) return false;
-    int left = index * 2 + 1;
-    int right = index * 2 + 2;
-    if (left < heap.activeSize() && heap.at(left) > heap.at(index)) return true;
-    if (right < heap.activeSize() && heap.at(right) > heap.at(index)) return true;
-    return false;
-}
-
-EventLog HeapRepairLevel::chooseRepair(int index, int direction, bool& accepted) {
+EventLog HeapRepairLevel::chooseSwap(int first, int second, bool& accepted) {
     accepted = false;
     if (complete || scoring.isFailed()) return EventLog();
 
-    bool valid = direction == HeapDirection::UP ? needsUp(index) : needsDown(index);
-    if (!valid) {
+    if (!isValidSwap(first, second)) {
         scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
         return EventLog();
     }
@@ -47,8 +60,7 @@ EventLog HeapRepairLevel::chooseRepair(int index, int direction, bool& accepted)
 
     accepted = true;
     scoring.addStep();
-    EventLog events = direction == HeapDirection::UP ? heap.repairUp(index)
-                                                     : heap.repairDown(index);
+    EventLog events = heap.playerSwap(first, second);
     if (heap.isMaxHeap()) {
         complete = true;
         scoring.finish();

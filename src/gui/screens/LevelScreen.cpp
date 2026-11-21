@@ -149,15 +149,28 @@ int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     return ScreenId::NONE;
 }
 
-void LevelScreen::update(float seconds) { if (heapMode) heapScreen.update(seconds); }
+int LevelScreen::update(float seconds) {
+    if (!heapMode) return ScreenId::NONE;
+    int target = heapScreen.update(seconds);
+    if (target == ScreenId::RESULT) {
+        storeResult(heapScreen.score());
+        if (heapScreen.isFinalVaultLevel()) {
+            session.finalVaultUnlocked = true;
+            session.sortedArrayText = heapScreen.sortedArrayText();
+            session.resultMessage = "Final Vault Unlocked";
+        }
+    }
+    return target;
+}
 
 void LevelScreen::draw(sf::RenderWindow& window) {
     if (heapMode) { heapScreen.draw(window); return; }
+    theme.drawBackdrop(window);
     Renderer renderer(window, theme.getFont());
     chrome.drawCanvasPanel(window, theme);
     chrome.drawSidePanel(window, theme);
     if (!logic) {
-        renderer.drawText(message, {550.f, 330.f}, 20, Palette::VIOLATION, true);
+        renderer.drawText(message, {400.f, 330.f}, 20, Palette::VIOLATION, true);
         return;
     }
     const LevelDef& level = logic->definition();
@@ -167,38 +180,40 @@ void LevelScreen::draw(sf::RenderWindow& window) {
     if (logic->tree().root()) stack.push(logic->tree().root());
     while (!stack.empty()) {
         const TreeNode* node = stack.pop();
-        sf::Vector2f from(400.f + viewX + (layout.xOf(node->id) - centre) * viewZoom,
-                          235.f + viewY + layout.yOf(node->id) * viewZoom);
+        sf::Vector2f from(390.f + viewX + (layout.xOf(node->id) - centre) * viewZoom,
+                          210.f + viewY + layout.yOf(node->id) * viewZoom);
         if (node->left) {
-            sf::Vector2f to(400.f + viewX + (layout.xOf(node->left->id) - centre) * viewZoom,
-                            235.f + viewY + layout.yOf(node->left->id) * viewZoom);
+            sf::Vector2f to(390.f + viewX + (layout.xOf(node->left->id) - centre) * viewZoom,
+                            210.f + viewY + layout.yOf(node->left->id) * viewZoom);
             renderer.drawEdge(from, to, false); stack.push(node->left);
         }
         if (node->right) {
-            sf::Vector2f to(400.f + viewX + (layout.xOf(node->right->id) - centre) * viewZoom,
-                            235.f + viewY + layout.yOf(node->right->id) * viewZoom);
+            sf::Vector2f to(390.f + viewX + (layout.xOf(node->right->id) - centre) * viewZoom,
+                            210.f + viewY + layout.yOf(node->right->id) * viewZoom);
             renderer.drawEdge(from, to, false); stack.push(node->right);
         }
     }
     for (int i = 0; i < layout.size(); i++) {
         const LayoutPoint& point = layout.at(i);
         const TreeNode* node = logic->tree().findById(point.nodeId);
-        renderer.drawNode({400.f + viewX + (point.x - centre) * viewZoom,
-                           235.f + viewY + point.y * viewZoom},
+        renderer.drawNode({390.f + viewX + (point.x - centre) * viewZoom,
+                           210.f + viewY + point.y * viewZoom},
                           node ? to_string(node->value) : "?", 0);
     }
 
-    chrome.drawHud(window, renderer, logic->score(), level.id, level.title, level.mission,
+    chrome.drawHud(window, renderer, theme, logic->score(), level.id, level.title, level.mission,
                    message, logic->isFailed());
     chrome.drawEventLog(renderer, lastEvents, lastEvents.size() - 1);
 
-    chrome.drawButton(window, theme, renderer, LevelChrome::opButtonWide(), "Next Step [N]");
+    chrome.drawButton(window, theme, renderer, LevelChrome::opButtonWide(), "Next Step [N]",
+                      ButtonKind::PRIMARY);
     chrome.drawButton(window, theme, renderer, LevelChrome::undoButton(), "Undo [Z]");
     chrome.drawButton(window, theme, renderer, LevelChrome::hintButton(), "Hint [H]");
-    chrome.drawButton(window, theme, renderer, LevelChrome::resetButton(), "Reset [R]");
+    chrome.drawButton(window, theme, renderer, LevelChrome::resetButton(), "Reset [R]",
+                      ButtonKind::DANGER);
     chrome.drawButton(window, theme, renderer, LevelChrome::exitButton(), "Campaign [Esc]");
     if (session.showHelp) {
-        chrome.drawHelp(renderer, "N next | H hint | Z undo | wheel zoom | drag pan | Esc map");
+        chrome.drawHelp(renderer, "N next · H hint · Z undo · wheel zoom · drag pan · Esc map");
     }
 }
 }

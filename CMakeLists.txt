@@ -29,7 +29,10 @@ target_link_libraries(vaultheist PRIVATE gamecore SFML::Graphics)
 add_custom_command(TARGET vaultheist POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_SOURCE_DIR}/data
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data)
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/assets
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/assets)
 add_executable(tests ${TEST_SOURCES})
 target_sources(tests PRIVATE
     src/gui/core/Renderer.cpp

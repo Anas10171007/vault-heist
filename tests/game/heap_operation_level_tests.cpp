@@ -4,6 +4,14 @@
 using namespace std;
 using namespace vh;
 
+static bool extractRootWithLast(HeapOperationLevel& level) {
+    bool accepted = false;
+    int last = level.lastActiveIndex();
+    if (last < 0) return false;
+    level.chooseExtract(0, last, accepted);
+    return accepted;
+}
+
 // Keep swapping the first broken parent with its largest child until restored.
 static void restoreWithSwaps(HeapOperationLevel& level) {
     while (level.needsRestore()) {
@@ -43,8 +51,13 @@ int runHeapOperationLevelTests() {
 
     HeapOperationLevel extract;
     extract.load(values, "heap_extract");
-    extract.extractMaximum();
-    check(extract.activeSize() == 3 && extract.needsRestore() && !extract.isComplete(),
+    bool accepted = false;
+    extract.chooseExtract(0, 1, accepted);
+    check(!accepted && extract.score().penalties() == 1,
+          "extract with a non-last leaf adds one alarm penalty");
+
+    check(extractRootWithLast(extract) && extract.activeSize() == 3 &&
+              extract.needsRestore() && !extract.isComplete(),
           "extract leaves the heap needing restore swaps");
     check(extract.score().steps() == 1, "extract counts as one player step");
     restoreWithSwaps(extract);
@@ -54,7 +67,7 @@ int runHeapOperationLevelTests() {
 
     extract.load(values, "heap_extract");
     for (int index = 0; index < 4; index++) {
-        extract.extractMaximum();
+        check(extractRootWithLast(extract), "scripted extract uses root and last leaf");
         if (extract.needsRestore()) restoreWithSwaps(extract);
     }
     check(extract.isComplete() && extract.score().stars() == 3,
@@ -62,9 +75,9 @@ int runHeapOperationLevelTests() {
 
     HeapOperationLevel race;
     race.load(values, "heap_race", 2);
-    race.extractMaximum();
+    extractRootWithLast(race);
     if (race.needsRestore()) restoreWithSwaps(race);
-    race.extractMaximum();
+    extractRootWithLast(race);
     if (race.needsRestore()) restoreWithSwaps(race);
     check(race.isComplete() && race.activeSize() == 2,
           "race level completes after the configured extraction count");
@@ -72,7 +85,7 @@ int runHeapOperationLevelTests() {
     HeapOperationLevel sort;
     sort.load(values, "heap_sort");
     for (int index = 0; index < 4; index++) {
-        sort.extractMaximum();
+        extractRootWithLast(sort);
         if (sort.needsRestore()) restoreWithSwaps(sort);
     }
     check(sort.isComplete() && sort.score().stars() == 3,
@@ -80,18 +93,16 @@ int runHeapOperationLevelTests() {
 
     HeapOperationLevel invalid;
     invalid.load(values, "heap_extract");
-    bool accepted = false;
+    accepted = false;
     invalid.chooseSwap(0, 1, accepted);
     check(!accepted && invalid.score().penalties() == 1 && !invalid.isComplete(),
           "swap before extract is an invalid heap action");
 
     HeapOperationLevel extractUndo;
     extractUndo.load(values, "heap_extract");
-    extractUndo.extractMaximum();
-    int sizeAfterExtract = extractUndo.activeSize();
+    extractRootWithLast(extractUndo);
     check(extractUndo.undo() && extractUndo.activeSize() == values.size() &&
-          extractUndo.score().steps() == 0 && !extractUndo.needsRestore(),
+              extractUndo.score().steps() == 0 && !extractUndo.needsRestore(),
           "undo after extract restores heap size, score, and restore flag");
-    (void)sizeAfterExtract;
     return failed;
 }
