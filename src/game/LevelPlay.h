@@ -7,6 +7,7 @@
 #include "model/EventLog.h"
 #include "model/Event.h"
 #include "model/tree/BinaryTree.h"
+#include "util/DynArray.h"
 
 namespace vh {
 
@@ -95,6 +96,19 @@ struct PlayResult {
     PlayResult& operator=(const PlayResult&) = delete;
 };
 
+// A snapshot keeps the exact model state: the tree with its node ids, the
+// score, and the level-specific progress counters. Restoring never rebuilds
+// the tree from the definition, so ids and animation targets stay identical.
+struct LevelSnapshot {
+    TreeSnapshot tree;
+    ScoreSnapshot score;
+    DynArray<int> state;
+    DynArray<int> flags;
+    DynArray<DynArray<int> > arrays;
+    DynArray<PlayerAction> actions;
+    DynArray<char> hints;
+};
+
 // One small interface for every act. The screens own a LevelPlay*, call load(),
 // draw tree(), feed clicks to apply(), and read score() for the alarm meter.
 class LevelPlay {
@@ -103,6 +117,16 @@ public:
 
     virtual bool load(const LevelDef& definition) = 0;
     virtual void reset() = 0;
+
+    // Additive undo support. Derived classes record their operations with
+    // recordAction/recordHint; no derived signature changes.
+    virtual LevelSnapshot captureSnapshot() const;
+    virtual void restoreSnapshot(const LevelSnapshot& snapshot);
+    void restart() {
+        reset();
+        history.actions.clear();
+        history.hints.clear();
+    }
     virtual PlayResult apply(const PlayerAction& action) = 0;
     virtual PlayResult hint() = 0;
 
@@ -114,6 +138,23 @@ public:
     virtual const ScoreSystem& score() const = 0;
     virtual const BinaryTree& tree() const = 0;
     virtual const LevelDef& definition() const = 0;
+
+protected:
+    virtual void restoreModelTree(const TreeSnapshot& snapshot) = 0;
+    virtual void restoreScore(const ScoreSnapshot& snapshot) = 0;
+
+    void recordAction(const PlayerAction& action) {
+        history.actions.push(action);
+        history.hints.push(0);
+    }
+    void recordHint() {
+        PlayerAction unused;
+        history.actions.push(unused);
+        history.hints.push(1);
+    }
+
+private:
+    LevelSnapshot history;
 };
 
 }

@@ -2,6 +2,19 @@
 
 namespace vh {
 
+// Additive memento used by LevelPlay snapshots.
+struct ScoreSnapshot {
+    int optimalSteps = 1;
+    int capacity = 1;
+    int stepCount = 0;
+    int alarmSteps = 0;
+    int penaltyCount = 0;
+    int pointPenalty = 0;
+    int bonusPoints = 0;
+    bool hintUsed = false;
+    bool finished = false;
+};
+
 struct PenaltyKind {
     static constexpr int WRONG_TRAVERSAL = 0;
     static constexpr int WRONG_ROTATION = 1;
@@ -28,6 +41,9 @@ public:
     int alarmCapacity() const;
     int penalties() const;
     bool usedHint() const;
+
+    ScoreSnapshot capture() const;
+    void restoreState(const ScoreSnapshot& snapshot);
 
 private:
     int optimalStepCount;

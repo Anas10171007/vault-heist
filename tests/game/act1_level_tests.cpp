@@ -62,6 +62,12 @@ int runAct1LevelTests() {
     check(allThreeStars, "scripted perfect play earns three stars on every act 1 level");
 
     const LevelDef* patrol = manager.load("1.1");
+    Act1Level stepCount;
+    stepCount.load(*patrol);
+    stepCount.apply(stepCount.nextAction());
+    check(!stepCount.isComplete() && stepCount.score().steps() == 1,
+          "a traversal level finishes only after the last click");
+
     Act1Level traversal;
     traversal.load(*patrol);
     int alarmBefore = traversal.score().alarm();

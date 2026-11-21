@@ -103,4 +103,30 @@ bool ScoreSystem::usedHint() const {
     return hintUsed;
 }
 
+ScoreSnapshot ScoreSystem::capture() const {
+    ScoreSnapshot snapshot;
+    snapshot.optimalSteps = optimalStepCount;
+    snapshot.capacity = capacity;
+    snapshot.stepCount = stepCount;
+    snapshot.alarmSteps = alarmSteps;
+    snapshot.penaltyCount = penaltyCount;
+    snapshot.pointPenalty = pointPenalty;
+    snapshot.bonusPoints = bonusPoints;
+    snapshot.hintUsed = hintUsed;
+    snapshot.finished = finished;
+    return snapshot;
+}
+
+void ScoreSystem::restoreState(const ScoreSnapshot& snapshot) {
+    optimalStepCount = snapshot.optimalSteps;
+    capacity = snapshot.capacity;
+    stepCount = snapshot.stepCount;
+    alarmSteps = snapshot.alarmSteps;
+    penaltyCount = snapshot.penaltyCount;
+    pointPenalty = snapshot.pointPenalty;
+    bonusPoints = snapshot.bonusPoints;
+    hintUsed = snapshot.hintUsed;
+    finished = snapshot.finished;
+}
+
 }

@@ -269,6 +269,7 @@ PlayResult Act3Level::accept(const char* message, EventLog& events) {
 }
 
 PlayResult Act3Level::apply(const PlayerAction& action) {
+    recordAction(action);
     PlayResult result;
     if (complete || scoring.isFailed()) {
         result.wrong = true;
@@ -404,12 +405,49 @@ PlayResult Act3Level::apply(const PlayerAction& action) {
 }
 
 PlayResult Act3Level::hint() {
+    recordHint();
     PlayResult result;
     scoring.addPenalty(PenaltyKind::HINT);
     result.hasHint = true;
     result.hintAction = nextAction();
     result.message = "hint used: three stars are no longer available";
     return result;
+}
+
+LevelSnapshot Act3Level::captureSnapshot() const {
+    LevelSnapshot snapshot = LevelPlay::captureSnapshot();
+    snapshot.state.push(progress);
+    snapshot.state.push(stage);
+    snapshot.state.push(phase);
+    snapshot.state.push(insertIndex);
+    snapshot.state.push(complete ? 1 : 0);
+    snapshot.state.push(repair.found ? 1 : 0);
+    snapshot.state.push(repair.nodeId);
+    snapshot.state.push(repair.pivotId);
+    snapshot.state.push(repair.caseType);
+    return snapshot;
+}
+
+void Act3Level::restoreSnapshot(const LevelSnapshot& snapshot) {
+    LevelPlay::restoreSnapshot(snapshot);
+    if (snapshot.state.size() < 9) return;
+    progress = snapshot.state[0];
+    stage = snapshot.state[1];
+    phase = snapshot.state[2];
+    insertIndex = snapshot.state[3];
+    complete = snapshot.state[4] != 0;
+    repair.found = snapshot.state[5] != 0;
+    repair.nodeId = snapshot.state[6];
+    repair.pivotId = snapshot.state[7];
+    repair.caseType = snapshot.state[8];
+}
+
+void Act3Level::restoreModelTree(const TreeSnapshot& snapshot) {
+    treeModel.restoreTree(snapshot);
+}
+
+void Act3Level::restoreScore(const ScoreSnapshot& snapshot) {
+    scoring.restoreState(snapshot);
 }
 
 int Act3Level::optimalSteps() const { return optimal; }

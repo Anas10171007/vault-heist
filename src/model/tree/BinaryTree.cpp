@@ -452,8 +452,110 @@ bool BinaryTree::swapChildren(int nodeId) {
     return true;
 }
 
+void BinaryTree::captureExtras(const TreeNode* node, int& first, int& second) const {
+    (void)node;
+    first = 0;
+    second = 0;
+}
+
+void BinaryTree::applyExtras(TreeNode* node, int first, int second) {
+    (void)node;
+    (void)first;
+    (void)second;
+}
+
+TreeSnapshot BinaryTree::captureTree() const {
+    TreeSnapshot snapshot;
+    snapshot.rootId = rootNode == nullptr ? 0 : rootNode->id;
+    Stack<const TreeNode*> pending;
+    if (rootNode != nullptr) pending.push(rootNode);
+    while (!pending.empty()) {
+        const TreeNode* node = pending.pop();
+        snapshot.ids.push(node->id);
+        snapshot.values.push(node->value);
+        snapshot.leftIds.push(node->left == nullptr ? 0 : node->left->id);
+        snapshot.rightIds.push(node->right == nullptr ? 0 : node->right->id);
+        int first = 0;
+        int second = 0;
+        captureExtras(node, first, second);
+        snapshot.extraA.push(first);
+        snapshot.extraB.push(second);
+        if (node->left != nullptr) pending.push(node->left);
+        if (node->right != nullptr) pending.push(node->right);
+    }
+    return snapshot;
+}
+
 TreeNode* BinaryTree::createNode(int value) {
     return new TreeNode(idSource.next(), value);
+}
+
+void BinaryTree::restoreTree(const TreeSnapshot& snapshot) {
+    DynArray<TreeNode*> existing;
+    Stack<TreeNode*> pending;
+    if (rootNode != nullptr) pending.push(rootNode);
+    while (!pending.empty()) {
+        TreeNode* node = pending.pop();
+        existing.push(node);
+        if (node->left != nullptr) pending.push(node->left);
+        if (node->right != nullptr) pending.push(node->right);
+    }
+
+    DynArray<TreeNode*> restored;
+    for (int i = 0; i < snapshot.ids.size(); i++) {
+        TreeNode* node = nullptr;
+        for (int j = 0; j < existing.size(); j++) {
+            if (existing[j]->id == snapshot.ids[i]) {
+                node = existing[j];
+                break;
+            }
+        }
+        if (node == nullptr) {
+            node = createNode(snapshot.values[i]);
+            node->id = snapshot.ids[i];
+            idSource.reserve(snapshot.ids[i]);
+        }
+        node->value = snapshot.values[i];
+        if (BSTNode* bst = dynamic_cast<BSTNode*>(node)) {
+            bst->setKey(snapshot.values[i]);
+        }
+        applyExtras(node, snapshot.extraA[i], snapshot.extraB[i]);
+        node->left = nullptr;
+        node->right = nullptr;
+        node->parent = nullptr;
+        restored.push(node);
+    }
+
+    for (int i = 0; i < restored.size(); i++) {
+        TreeNode* node = restored[i];
+        for (int j = 0; j < restored.size(); j++) {
+            if (snapshot.leftIds[i] == snapshot.ids[j]) node->left = restored[j];
+            if (snapshot.rightIds[i] == snapshot.ids[j]) node->right = restored[j];
+        }
+        if (node->left != nullptr) node->left->parent = node;
+        if (node->right != nullptr) node->right->parent = node;
+        if (snapshot.ids[i] == snapshot.rootId) {
+            rootNode = node;
+            rootNode->parent = nullptr;
+        }
+    }
+
+    for (int i = 0; i < existing.size(); i++) {
+        TreeNode* node = existing[i];
+        bool used = false;
+        for (int j = 0; j < restored.size(); j++) {
+            if (node == restored[j]) {
+                used = true;
+                break;
+            }
+        }
+        if (!used) {
+            node->left = nullptr;
+            node->right = nullptr;
+            delete node;
+        }
+    }
+    if (snapshot.rootId == 0) rootNode = nullptr;
 }
 
 void BinaryTree::destroyNodes(TreeNode* node) {
