@@ -189,6 +189,20 @@ EventLog MaxHeap::extractMaxNoHeapify(int& maximum) {
     return events;
 }
 
+EventLog MaxHeap::sealLastSorted(int& sealedValue) {
+    EventLog events(recording);
+    if (heapSize <= 0) return events;
+
+    int oldSize = heapSize;
+    sealedValue = values[heapSize - 1];
+    events.append(Event(EventType::EXTRACT_MAX, 0, heapSize, Side::NONE, sealedValue));
+    heapSize--;
+    events.append(Event(EventType::HEAP_SIZE_CHANGE, 0, 0, Side::NONE, 0,
+                        oldSize, heapSize));
+    events.append(Event(EventType::MARK_SORTED, heapSize, 0, Side::NONE, sealedValue));
+    return events;
+}
+
 EventLog MaxHeap::heapSort() {
     EventLog events(recording);
     buildMaxHeap(events);

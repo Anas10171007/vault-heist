@@ -16,6 +16,8 @@ public:
     EventLog insert(int value);
     EventLog extractMax(int& maximum);
     EventLog extractMaxNoHeapify(int& maximum);
+    // After root↔last swap: shrink active heap so the last cell becomes sorted.
+    EventLog sealLastSorted(int& sealedValue);
     EventLog heapSort();
     EventLog playerSwap(int first, int second);
     EventLog repairUp(int index);

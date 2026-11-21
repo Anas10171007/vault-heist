@@ -58,12 +58,7 @@ void ScreenManager::handleEvent(const sf::Event& event, sf::RenderWindow& window
         return;
     }
 
-    const sf::Event::KeyPressed* keyPress = event.getIf<sf::Event::KeyPressed>();
-    if (keyPress != nullptr && keyPress->code == sf::Keyboard::Key::Escape) {
-        show(ScreenId::MENU);
-        return;
-    }
-
+    // Esc is handled per-screen (level → campaign, campaign → menu, etc.).
     int requestedScreen = screens[activeScreen]->handleEvent(event, window);
     if (requestedScreen == ScreenId::QUIT) {
         window.close();

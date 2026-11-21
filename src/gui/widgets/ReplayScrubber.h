@@ -11,7 +11,7 @@ namespace vh {
 
 class ReplayScrubber {
 public:
-    static sf::FloatRect trackBounds() { return {{48.f, 640.f}, {700.f, 14.f}}; }
+    static sf::FloatRect trackBounds() { return {{40.f, 608.f}, {720.f, 12.f}}; }
 
     void draw(sf::RenderWindow& window, Renderer& renderer, Theme& theme,
               const AnimationController& animation) const {

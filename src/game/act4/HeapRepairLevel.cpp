@@ -11,56 +11,53 @@ void HeapRepairLevel::load(const DynArray<int>& values) {
     history.clear();
     MaxHeap solution(false);
     solution.load(values);
-    solution.buildMaxHeap();
-    scoring.reset(solution.swaps());
+    int before = solution.swaps();
+    solution.repairDown(0);
+    int opt = solution.swaps() - before;
+    if (opt < 1) opt = 1;
+    scoring.reset(opt);
     complete = heap.isMaxHeap();
     if (complete) scoring.finish();
 }
 
-bool HeapRepairLevel::isValidSwap(int first, int second) const {
-    if (first < 0 || second < 0 || first >= heap.activeSize() ||
-        second >= heap.activeSize() || first == second) {
-        return false;
-    }
-
-    int parent = first;
-    int child = second;
-    if ((first - 1) / 2 == second && first > 0) {
-        parent = second;
-        child = first;
-    } else if ((second - 1) / 2 != first || second <= 0) {
-        return false;
-    }
-
-    if (heap.at(child) <= heap.at(parent)) return false;
-
-    int left = parent * 2 + 1;
-    int right = parent * 2 + 2;
-    int largestChild = left;
-    if (right < heap.activeSize() && heap.at(right) > heap.at(left)) {
-        largestChild = right;
-    }
-    return child == largestChild;
-}
-
-EventLog HeapRepairLevel::chooseSwap(int first, int second, bool& accepted) {
-    accepted = false;
-    if (complete || scoring.isFailed()) return EventLog();
-
-    if (!isValidSwap(first, second)) {
-        scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
-        return EventLog();
-    }
-
+void HeapRepairLevel::pushSnapshot() {
     Snapshot snapshot;
     snapshot.heapState = heap.serialize();
     snapshot.scoreState = scoring;
     snapshot.wasComplete = complete;
     history.push(snapshot);
+}
 
+bool HeapRepairLevel::canSiftUp(int index) const {
+    if (index <= 0 || index >= heap.activeSize()) return false;
+    int parent = (index - 1) / 2;
+    return heap.at(index) > heap.at(parent);
+}
+
+bool HeapRepairLevel::canSiftDown(int index) const {
+    if (index < 0 || index >= heap.activeSize()) return false;
+    int left = index * 2 + 1;
+    int right = index * 2 + 2;
+    if (left >= heap.activeSize()) return false;
+    if (heap.at(left) > heap.at(index)) return true;
+    if (right < heap.activeSize() && heap.at(right) > heap.at(index)) return true;
+    return false;
+}
+
+EventLog HeapRepairLevel::chooseHeapify(int index, bool siftUp, bool& accepted) {
+    accepted = false;
+    if (complete || scoring.isFailed()) return EventLog();
+
+    bool valid = siftUp ? canSiftUp(index) : canSiftDown(index);
+    if (!valid) {
+        scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
+        return EventLog();
+    }
+
+    pushSnapshot();
     accepted = true;
     scoring.addStep();
-    EventLog events = heap.playerSwap(first, second);
+    EventLog events = siftUp ? heap.repairUp(index) : heap.repairDown(index);
     if (heap.isMaxHeap()) {
         complete = true;
         scoring.finish();
@@ -88,5 +85,7 @@ void HeapRepairLevel::copyValues(DynArray<int>& output) const {
 }
 
 const ScoreSystem& HeapRepairLevel::score() const { return scoring; }
+
+void HeapRepairLevel::applyHint() { scoring.addPenalty(PenaltyKind::HINT); }
 
 }

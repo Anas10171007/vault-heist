@@ -27,10 +27,20 @@ void LevelScreen::onShow() {
     if (!level) { message = "Level data unavailable."; return; }
     if (heapMode) {
         heapScreen.setAnimationSpeed(session.animationSpeed);
+        if (session.reviewReplay) {
+            session.reviewReplay = false;
+            if (heapScreen.startReviewReplay()) {
+                message.clear();
+                return;
+            }
+        }
+        session.hasLevelReplay = false;
         heapScreen.selectLevel(level->id);
         message.clear();
         return;
     }
+    session.hasLevelReplay = false;
+    session.reviewReplay = false;
     logic = createLevelPlay(*level);
     if (!logic || !logic->load(*level)) { message = "Could not create level logic."; return; }
     message = "Click Next Step, or press N, to execute the expected player action.";
@@ -87,8 +97,9 @@ void LevelScreen::storeResult(const ScoreSystem& score) {
 int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     if (heapMode) {
         int target = heapScreen.handleEvent(event, window);
-        if (target == ScreenId::RESULT) {
+        if (target == ScreenId::RESULT && !heapScreen.isReviewMode()) {
             storeResult(heapScreen.score());
+            session.hasLevelReplay = heapScreen.canReviewReplay();
             if (heapScreen.isFinalVaultLevel()) {
                 session.finalVaultUnlocked = true;
                 session.sortedArrayText = heapScreen.sortedArrayText();
@@ -160,8 +171,9 @@ int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
 int LevelScreen::update(float seconds) {
     if (!heapMode) return ScreenId::NONE;
     int target = heapScreen.update(seconds);
-    if (target == ScreenId::RESULT) {
+    if (target == ScreenId::RESULT && !heapScreen.isReviewMode()) {
         storeResult(heapScreen.score());
+        session.hasLevelReplay = heapScreen.canReviewReplay();
         if (heapScreen.isFinalVaultLevel()) {
             session.finalVaultUnlocked = true;
             session.sortedArrayText = heapScreen.sortedArrayText();

@@ -22,6 +22,7 @@ public:
     int valueAt(int index) const;
     void copyValues(DynArray<int>& output) const;
     const ScoreSystem& score() const;
+    void applyHint();
 
 private:
     struct Snapshot {

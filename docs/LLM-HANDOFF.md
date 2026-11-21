@@ -110,6 +110,20 @@ and `docs/score-system.md` are the local references for those contracts.
    applies it automatically. Treat it as a temporary demo path, not finished
    player interaction.
 
+## Still to review / fix (keep current)
+
+- **Endless mode (brief survival mode)** — still a `StubScreen` only. Brief wants
+  a stream of mixed inserts/deletes, score = survival time while the tree stays
+  valid, difficulty ramping the operation rate, and save of endless tree/heap +
+  seed. **Not the same as Sandbox** (Sandbox = free practice; Endless = timed
+  survival). Implement or confirm with TA if optional before demo.
+- Commit + push uncommitted Act 4 / P2 polish when Arslan asks (extract UX,
+  timeline scrubber, UI declutter, solo extract, result Replay).
+- Manual playthrough of 4.1–4.5 (complete, fail, retry, undo, Results → Replay).
+- Merge with Anas `develop` when ready (do not force-merge alone).
+- Written report PDF + GUI/heap/AVL screenshots; refresh `TEST_REPORT.md` counts.
+- Fold Section 10 bench CSV numbers into the report.
+
 ## Verification routine
 
 After a focused change:

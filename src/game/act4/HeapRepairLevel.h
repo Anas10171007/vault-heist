@@ -13,15 +13,18 @@ public:
     HeapRepairLevel();
 
     void load(const DynArray<int>& values);
-    EventLog chooseSwap(int first, int second, bool& accepted);
+    // siftUp = true → repairUp; false → repairDown.
+    EventLog chooseHeapify(int index, bool siftUp, bool& accepted);
+    bool canSiftUp(int index) const;
+    bool canSiftDown(int index) const;
     bool undo();
-    bool isValidSwap(int first, int second) const;
     bool isComplete() const;
     bool isFailed() const;
     int size() const;
     int valueAt(int index) const;
     void copyValues(DynArray<int>& output) const;
     const ScoreSystem& score() const;
+    void applyHint();
 
 private:
     struct Snapshot {
@@ -34,6 +37,8 @@ private:
     ScoreSystem scoring;
     DynArray<Snapshot> history;
     bool complete;
+
+    void pushSnapshot();
 };
 
 }

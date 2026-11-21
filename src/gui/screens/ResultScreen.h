@@ -14,6 +14,7 @@ public:
 private:
     Theme& theme;
     GameSession& session;
+    sf::FloatRect replayButton() const;
     sf::FloatRect retryButton() const;
     sf::FloatRect nextButton() const;
     sf::FloatRect mapButton() const;

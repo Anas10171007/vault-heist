@@ -89,4 +89,6 @@ void HeapBuildLevel::copyValues(DynArray<int>& output) const {
 
 const ScoreSystem& HeapBuildLevel::score() const { return scoring; }
 
+void HeapBuildLevel::applyHint() { scoring.addPenalty(PenaltyKind::HINT); }
+
 }

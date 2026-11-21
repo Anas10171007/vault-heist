@@ -10,6 +10,8 @@
 #include "gui/widgets/HeapView.h"
 #include "gui/widgets/LevelChrome.h"
 #include "gui/widgets/ReplayScrubber.h"
+#include "model/EventLog.h"
+#include "util/DynArray.h"
 
 using namespace std;
 
@@ -27,6 +29,9 @@ public:
     void setAnimationSpeed(float speed);
     bool isFinalVaultLevel() const;
     string sortedArrayText() const;
+    bool canReviewReplay() const;
+    bool startReviewReplay();
+    bool isReviewMode() const;
 
 private:
     Theme& theme;
@@ -39,12 +44,25 @@ private:
     AnimationController animation;
     LevelChrome chrome;
     ReplayScrubber scrubber;
+    EventLog levelTimeline;
+    DynArray<int> replayBaseline;
+    int replayBaselineActive;
     int firstSelection;
     bool waitingForAnimation;
+    bool extractDragging;
+    bool reviewMode;
     string message;
 
     void resetLevel();
     void selectIndex(int index);
+    void playOperationEvents(const EventLog& events);
+    void resetReplayTimeline();
+    void confirmPendingExtract();
+    void beginSoloExtract();
+    void runSelectedHeapify(bool siftUp);
+    void runBuildAction();
+    void runHeapifyRootAction();
+    bool canSoloExtract() const;
     bool loadLevel(const string& id);
     bool isBuildLevel() const;
     bool isRepairLevel() const;

@@ -33,7 +33,10 @@ bool CampaignScreen::isUnlocked(int index) const {
 
 int CampaignScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     const auto* key = event.getIf<sf::Event::KeyPressed>();
-    if (key && key->code == sf::Keyboard::Key::Backspace) return ScreenId::MENU;
+    if (key && (key->code == sf::Keyboard::Key::Backspace ||
+                key->code == sf::Keyboard::Key::Escape)) {
+        return ScreenId::MENU;
+    }
     const auto* click = event.getIf<sf::Event::MouseButtonPressed>();
     if (!click || click->button != sf::Mouse::Button::Left || !loaded) return ScreenId::NONE;
     sf::Vector2f point = window.mapPixelToCoords(click->position);

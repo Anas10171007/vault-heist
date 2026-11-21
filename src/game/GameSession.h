@@ -24,6 +24,9 @@ struct GameSession {
     float animationSpeed = 1.f;
     bool showHelp = true;
     bool finalVaultUnlocked = false;
+    // Result → Replay: LevelScreen reopens the last Act 4 timeline without reset.
+    bool hasLevelReplay = false;
+    bool reviewReplay = false;
     DynArray<LevelProgress> progress;
 
     int bestStarsFor(const string& levelId) const {

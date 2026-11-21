@@ -26,6 +26,8 @@ private:
     Theme& theme;
     int structure; // 0 Binary, 1 BST, 2 AVL, 3 MaxHeap
     int inputValue;
+    int rangeHi;
+    int selectedNodeId;
     string message;
     BinaryTree binary;
     BST bst;
@@ -38,6 +40,10 @@ private:
     sf::FloatRect structureButton() const;
     sf::FloatRect insertButton() const;
     sf::FloatRect removeButton() const;
+    sf::FloatRect searchButton() const;
+    sf::FloatRect rangeButton() const;
+    sf::FloatRect rotateLButton() const;
+    sf::FloatRect rotateRButton() const;
     sf::FloatRect randomButton() const;
     sf::FloatRect clearButton() const;
     sf::FloatRect buildButton() const;
@@ -47,10 +53,14 @@ private:
     void cycleStructure();
     void doInsert();
     void doRemove();
+    void doSearch();
+    void doRange();
+    void doRotate(bool left);
     void doRandom();
     void doClear();
     void doBuild();
     void refreshHeapView();
+    void drawTree(Renderer& renderer);
 };
 
 }

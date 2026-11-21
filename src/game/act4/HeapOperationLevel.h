@@ -13,17 +13,24 @@ public:
     HeapOperationLevel();
 
     void load(const DynArray<int>& values, const string& task, int targetExtractions = 0);
-    // Player picks root (0) and the last active leaf (activeSize-1), either order.
+    // Player picks root (0) and last active leaf: swaps only. Max stays visible
+    // until confirmExtract (drag to SORTED / Extract button).
     EventLog chooseExtract(int first, int second, bool& accepted);
+    EventLog confirmExtract(bool& accepted);
     EventLog chooseSwap(int first, int second, bool& accepted);
+    EventLog runBuildMaxHeap(bool& accepted);
+    EventLog runHeapifyDownRoot(bool& accepted);
     bool undo();
     bool isComplete() const;
     bool isFailed() const;
     bool needsRestore() const;
+    bool needsExtractConfirm() const;
+    bool needsBuild() const;
     int activeSize() const;
     int lastActiveIndex() const;
     void copyValues(DynArray<int>& output) const;
     const ScoreSystem& score() const;
+    void applyHint();
 
 private:
     struct Snapshot {
@@ -32,6 +39,8 @@ private:
         bool wasComplete;
         int extractionsDone;
         bool awaitingRestore;
+        bool awaitingExtractConfirm;
+        bool awaitingBuild;
     };
 
     MaxHeap heap;
@@ -41,6 +50,8 @@ private:
     int extractionGoal;
     int completedExtractions;
     bool awaitingRestore;
+    bool awaitingExtractConfirm;
+    bool awaitingBuild;
     bool complete;
 
     void pushSnapshot();

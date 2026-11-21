@@ -8,16 +8,29 @@ namespace vh {
 ResultScreen::ResultScreen(Theme& sharedTheme, GameSession& sharedSession)
     : theme(sharedTheme), session(sharedSession) {}
 
-sf::FloatRect ResultScreen::retryButton() const { return {{350.f, 460.f}, {400.f, 44.f}}; }
-sf::FloatRect ResultScreen::nextButton() const { return {{350.f, 514.f}, {400.f, 48.f}}; }
-sf::FloatRect ResultScreen::mapButton() const { return {{350.f, 574.f}, {400.f, 40.f}}; }
+sf::FloatRect ResultScreen::replayButton() const { return {{350.f, 430.f}, {400.f, 40.f}}; }
+sf::FloatRect ResultScreen::retryButton() const { return {{350.f, 480.f}, {400.f, 44.f}}; }
+sf::FloatRect ResultScreen::nextButton() const { return {{350.f, 534.f}, {400.f, 48.f}}; }
+sf::FloatRect ResultScreen::mapButton() const { return {{350.f, 592.f}, {400.f, 40.f}}; }
 
 int ResultScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
+    const auto* key = event.getIf<sf::Event::KeyPressed>();
+    if (key && key->code == sf::Keyboard::Key::Escape) return ScreenId::CAMPAIGN_MAP;
     const auto* click = event.getIf<sf::Event::MouseButtonPressed>();
     if (!click || click->button != sf::Mouse::Button::Left) return ScreenId::NONE;
     sf::Vector2f point = window.mapPixelToCoords(click->position);
-    if (retryButton().contains(point)) return ScreenId::LEVEL_PLAY;
+    if (session.hasLevelReplay && replayButton().contains(point)) {
+        session.reviewReplay = true;
+        return ScreenId::LEVEL_PLAY;
+    }
+    if (retryButton().contains(point)) {
+        session.hasLevelReplay = false;
+        session.reviewReplay = false;
+        return ScreenId::LEVEL_PLAY;
+    }
     if (nextButton().contains(point) && !session.nextLevelId.empty()) {
+        session.hasLevelReplay = false;
+        session.reviewReplay = false;
         session.selectedLevel = session.nextLevelId;
         return ScreenId::BRIEFING;
     }
@@ -60,15 +73,19 @@ void ResultScreen::draw(sf::RenderWindow& window) {
     renderer.drawText("Efficiency  " + to_string(efficiency) + "%", {550.f, 390.f}, 15,
                       Palette::TEXT, true);
 
-    if (session.finalVaultUnlocked) {
-        renderer.drawText("FINAL VAULT UNLOCKED", {550.f, 424.f}, 16, Palette::BRASS, true);
+    if (session.finalVaultUnlocked && !session.hasLevelReplay) {
+        renderer.drawText("FINAL VAULT UNLOCKED", {550.f, 418.f}, 14, Palette::BRASS, true);
         if (!session.sortedArrayText.empty()) {
             string sorted = session.sortedArrayText;
             if (sorted.size() > 48) sorted = sorted.substr(0, 47) + "…";
-            renderer.drawText(sorted, {550.f, 448.f}, 12, Palette::MUTED, true);
+            renderer.drawText(sorted, {550.f, 438.f}, 11, Palette::MUTED, true);
         }
     }
 
+    if (session.hasLevelReplay) {
+        theme.drawButton(window, theme.getFont(), replayButton(), "Replay Run",
+                         ButtonKind::PRIMARY, theme.hovered(window, replayButton()));
+    }
     theme.drawButton(window, theme.getFont(), retryButton(), "Retry", ButtonKind::SECONDARY,
                      theme.hovered(window, retryButton()));
     if (!session.nextLevelId.empty()) {

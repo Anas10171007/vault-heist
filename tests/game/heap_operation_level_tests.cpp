@@ -9,6 +9,11 @@ static bool extractRootWithLast(HeapOperationLevel& level) {
     int last = level.lastActiveIndex();
     if (last < 0) return false;
     level.chooseExtract(0, last, accepted);
+    if (!accepted) return false;
+    if (level.needsExtractConfirm()) {
+        accepted = false;
+        level.confirmExtract(accepted);
+    }
     return accepted;
 }
 
@@ -56,10 +61,17 @@ int runHeapOperationLevelTests() {
     check(!accepted && extract.score().penalties() == 1,
           "extract with a non-last leaf adds one alarm penalty");
 
-    check(extractRootWithLast(extract) && extract.activeSize() == 3 &&
-              extract.needsRestore() && !extract.isComplete(),
-          "extract leaves the heap needing restore swaps");
-    check(extract.score().steps() == 1, "extract counts as one player step");
+    accepted = false;
+    extract.chooseExtract(0, extract.lastActiveIndex(), accepted);
+    check(accepted && extract.needsExtractConfirm() && extract.activeSize() == 4,
+          "root+last only swaps; max stays until extract confirm");
+    check(extract.score().steps() == 0, "swap prepare does not spend a step yet");
+    accepted = false;
+    extract.confirmExtract(accepted);
+    check(accepted && extract.activeSize() == 3 && extract.needsRestore() &&
+              !extract.isComplete(),
+          "extract confirm seals last cell into sorted and needs restore");
+    check(extract.score().steps() == 1, "confirm extract counts as one player step");
     restoreWithSwaps(extract);
     check(!extract.needsRestore() && extract.activeSize() == 3 && !extract.isComplete(),
           "manual swaps restore the Max Heap after extract");
@@ -84,6 +96,11 @@ int runHeapOperationLevelTests() {
 
     HeapOperationLevel sort;
     sort.load(values, "heap_sort");
+    check(sort.needsBuild(), "heap sort starts unsorted and needs Build Max Heap");
+    accepted = false;
+    sort.runBuildMaxHeap(accepted);
+    check(accepted && !sort.needsBuild() && sort.activeSize() == values.size(),
+          "Build Max Heap prepares the sort level");
     for (int index = 0; index < 4; index++) {
         extractRootWithLast(sort);
         if (sort.needsRestore()) restoreWithSwaps(sort);
@@ -101,8 +118,13 @@ int runHeapOperationLevelTests() {
     HeapOperationLevel extractUndo;
     extractUndo.load(values, "heap_extract");
     extractRootWithLast(extractUndo);
-    check(extractUndo.undo() && extractUndo.activeSize() == values.size() &&
+    check(extractUndo.undo() && extractUndo.needsExtractConfirm() &&
+              extractUndo.activeSize() == values.size() &&
               extractUndo.score().steps() == 0 && !extractUndo.needsRestore(),
-          "undo after extract restores heap size, score, and restore flag");
+          "first undo after confirm returns to swapped pending-extract state");
+    check(extractUndo.undo() && !extractUndo.needsExtractConfirm() &&
+              extractUndo.activeSize() == values.size() &&
+              extractUndo.score().steps() == 0,
+          "second undo restores the pre-swap heap");
     return failed;
 }

@@ -9,7 +9,7 @@ namespace vh {
 
 HeapView::HeapView()
     : initialHeapSize(0), heapSize(0), swapA(-1), swapB(-1), swapProgress(0),
-      selected(-1) {}
+      selected(-1), sealIndex(-1), sealProgress(0) {}
 
 void HeapView::load(const DynArray<int>& startValues, int startHeapSize) {
     initialValues = startValues;
@@ -26,6 +26,8 @@ void HeapView::reset() {
     swapB = -1;
     swapProgress = 0;
     selected = -1;
+    sealIndex = -1;
+    sealProgress = 0;
 }
 
 void HeapView::onEvent(const Event& event, float progress) {
@@ -50,10 +52,26 @@ void HeapView::onEvent(const Event& event, float progress) {
         }
     }
 
-    if (event.type == EventType::HEAP_SIZE_CHANGE && progress >= 1) {
-        heapSize = event.newValue;
-        if (heapSize < 0) heapSize = 0;
-        if (heapSize > values.size()) heapSize = values.size();
+    // Shrink the active heap immediately, then fly the sealed leaf into SORTED
+    // so it does not vanish from the tree with no destination.
+    if (event.type == EventType::HEAP_SIZE_CHANGE) {
+        int nextSize = event.newValue;
+        if (nextSize < 0) nextSize = 0;
+        if (nextSize > values.size()) nextSize = values.size();
+
+        int fromSize = event.oldValue;
+        if (fromSize < 1) fromSize = heapSize;
+        if (fromSize > values.size()) fromSize = values.size();
+
+        if (sealIndex < 0 && nextSize < fromSize) {
+            sealIndex = fromSize - 1;
+        }
+        heapSize = nextSize;
+        sealProgress = progress;
+        if (progress >= 1) {
+            sealIndex = -1;
+            sealProgress = 0;
+        }
     }
 }
 
@@ -111,11 +129,16 @@ bool HeapView::isViolation(int index) const {
 
 void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth,
                     sf::Vector2f arrayOrigin, float arrayWidth) const {
-    renderer.drawText("ACTIVE HEAP TREE", {treeOrigin.x, treeOrigin.y - 52.f},
-                      16, Palette::TEXT, false);
-    renderer.drawText("HEAP SIZE: " + to_string(heapSize),
-                      {treeOrigin.x + treeWidth - 65.f, treeOrigin.y - 52.f},
-                      14, Palette::MUTED, true);
+    renderer.drawText("HEAP TREE", {treeOrigin.x, treeOrigin.y - 28.f},
+                      13, Palette::MUTED, false);
+    renderer.drawText("size " + to_string(heapSize),
+                      {treeOrigin.x + 110.f, treeOrigin.y - 28.f},
+                      13, Palette::MUTED, false);
+
+    float gap = 8.f;
+    int cellsPerRow = static_cast<int>((arrayWidth + gap) /
+                                      (Renderer::CELL_W + gap));
+    if (cellsPerRow < 1) cellsPerRow = 1;
 
     sf::Vector2f treeFirst;
     sf::Vector2f treeSecond;
@@ -146,12 +169,8 @@ void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth
         }
     }
 
-    renderer.drawText("ARRAY VIEW", {arrayOrigin.x, arrayOrigin.y - 38.f},
-                      16, Palette::TEXT, false);
-    float gap = 8.f;
-    int cellsPerRow = static_cast<int>((arrayWidth + gap) /
-                                      (Renderer::CELL_W + gap));
-    if (cellsPerRow < 1) cellsPerRow = 1;
+    renderer.drawText("ARRAY", {arrayOrigin.x, arrayOrigin.y - 28.f},
+                      13, Palette::MUTED, false);
 
     sf::Vector2f arrayFirst;
     sf::Vector2f arraySecond;
@@ -160,6 +179,7 @@ void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth
         arraySecond = arrayPosition(swapB, arrayOrigin, cellsPerRow, gap);
     }
 
+    bool sealing = sealIndex >= 0 && sealIndex < values.size() && sealProgress < 1.f;
     int previousRegion = -1;
     int previousRow = -1;
     for (int index = 0; index < values.size(); index++) {
@@ -175,11 +195,29 @@ void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth
             previousRegion = region;
         }
 
+        // Hide the destination cell until the flying max nearly lands.
+        if (sealing && index == sealIndex && sealProgress < 0.85f) continue;
+
         sf::Vector2f normal = arrayPosition(index, arrayOrigin, cellsPerRow, gap);
         sf::Vector2f position = movingPosition(index, normal, arrayFirst, arraySecond);
         if (index == selected) region = CellRegion::SELECTED;
         if (index == swapA || index == swapB) region = CellRegion::SWAPPING;
+        if (index == sealIndex) region = CellRegion::SORTED;
         renderer.drawArrayCell(position, index, values[index], region);
+    }
+
+    // Fly the sealed max from its tree leaf into the SORTED array slot.
+    if (sealIndex >= 0 && sealIndex < values.size()) {
+        sf::Vector2f from = treePosition(sealIndex, treeOrigin, treeWidth);
+        sf::Vector2f to = arrayPosition(sealIndex, arrayOrigin, cellsPerRow, gap);
+        float t = sealProgress;
+        if (t < 0.f) t = 0.f;
+        if (t > 1.f) t = 1.f;
+        sf::Vector2f pos = from + (to - from) * t;
+        float arc = 40.f * 4.f * t * (1.f - t);
+        pos.y += arc;
+        renderer.drawNode(pos, to_string(values[sealIndex]), NodeState::TARGET);
+        renderer.drawBadge(pos + sf::Vector2f(34.f, -30.f), "MAX", NodeState::TARGET);
     }
 }
 
@@ -218,6 +256,44 @@ int HeapView::hitTest(sf::Vector2f point, sf::Vector2f treeOrigin, float treeWid
         if ((point - node).length() <= Renderer::NODE_HIT_RADIUS) return index;
     }
     return -1;
+}
+
+sf::Vector2f HeapView::sortedDropCenter(sf::Vector2f arrayOrigin,
+                                        float arrayWidth) const {
+    float gap = 8.f;
+    int cellsPerRow = static_cast<int>((arrayWidth + gap) /
+                                      (Renderer::CELL_W + gap));
+    if (cellsPerRow < 1) cellsPerRow = 1;
+    return arrayPosition(heapSize, arrayOrigin, cellsPerRow, gap);
+}
+
+bool HeapView::hitsSortedDrop(sf::Vector2f point, sf::Vector2f arrayOrigin,
+                              float arrayWidth) const {
+    float gap = 8.f;
+    int cellsPerRow = static_cast<int>((arrayWidth + gap) /
+                                      (Renderer::CELL_W + gap));
+    if (cellsPerRow < 1) cellsPerRow = 1;
+
+    for (int index = heapSize; index < values.size(); index++) {
+        sf::Vector2f cell = arrayPosition(index, arrayOrigin, cellsPerRow, gap);
+        if (point.x >= cell.x - Renderer::CELL_W / 2.f &&
+            point.x <= cell.x + Renderer::CELL_W / 2.f &&
+            point.y >= cell.y - Renderer::CELL_H / 2.f &&
+            point.y <= cell.y + Renderer::CELL_H / 2.f) {
+            return true;
+        }
+    }
+
+    // Next slot after the active region (where the extracted max lands).
+    sf::Vector2f drop = arrayPosition(heapSize, arrayOrigin, cellsPerRow, gap);
+    float pad = 18.f;
+    if (point.x >= drop.x - Renderer::CELL_W / 2.f - pad &&
+        point.x <= drop.x + Renderer::CELL_W / 2.f + pad &&
+        point.y >= drop.y - Renderer::CELL_H / 2.f - pad &&
+        point.y <= drop.y + Renderer::CELL_H / 2.f + pad) {
+        return true;
+    }
+    return false;
 }
 
 }

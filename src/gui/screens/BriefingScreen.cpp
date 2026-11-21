@@ -13,6 +13,7 @@ sf::FloatRect BriefingScreen::backButton() const { return {{350.f, 532.f}, {400.
 
 int BriefingScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     const auto* key = event.getIf<sf::Event::KeyPressed>();
+    if (key && key->code == sf::Keyboard::Key::Escape) return ScreenId::CAMPAIGN_MAP;
     if (key && key->code == sf::Keyboard::Key::Enter) return ScreenId::LEVEL_PLAY;
     const auto* click = event.getIf<sf::Event::MouseButtonPressed>();
     if (!click || click->button != sf::Mouse::Button::Left) return ScreenId::NONE;
