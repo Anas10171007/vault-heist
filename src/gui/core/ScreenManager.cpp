@@ -1,6 +1,8 @@
 #include "gui/core/ScreenManager.h"
 #include "gui/screens/StubScreen.h"
 #include "gui/screens/HeapLevelScreen.h"
+#include "gui/screens/CampaignMapScreen.h"
+#include "gui/screens/LevelPlayScreen.h"
 
 namespace vh {
 
@@ -18,17 +20,15 @@ ScreenManager::ScreenManager(Theme& theme) {
     menu->addButton("Quit", ScreenId::QUIT);
     screens[ScreenId::MENU] = menu;
 
-    StubScreen* campaign = new StubScreen(theme, "Campaign Map", "Four acts and twenty vault missions");
-    campaign->addButton("Open Level Briefing", ScreenId::BRIEFING);
-    campaign->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::CAMPAIGN_MAP] = campaign;
+    LevelPlayScreen* play = new LevelPlayScreen(theme);
+    screens[ScreenId::CAMPAIGN_MAP] = new CampaignMapScreen(theme, play, play->session());
 
     StubScreen* briefing = new StubScreen(theme, "Level Briefing", "Review the mission before entering");
     briefing->addButton("Start Level", ScreenId::LEVEL_PLAY);
     briefing->addButton("Campaign Map", ScreenId::CAMPAIGN_MAP);
     screens[ScreenId::BRIEFING] = briefing;
 
-    screens[ScreenId::LEVEL_PLAY] = new HeapLevelScreen(theme);
+    screens[ScreenId::LEVEL_PLAY] = play;
 
     StubScreen* result = new StubScreen(theme, "Result", "Stars, steps, and penalties will appear here");
     result->addButton("Retry", ScreenId::LEVEL_PLAY);
@@ -69,7 +69,7 @@ void ScreenManager::handleEvent(const sf::Event& event, sf::RenderWindow& window
 
     const sf::Event::KeyPressed* keyPress = event.getIf<sf::Event::KeyPressed>();
     if (keyPress != nullptr && keyPress->code == sf::Keyboard::Key::Escape) {
-        show(ScreenId::MENU);
+        show(activeScreen == ScreenId::LEVEL_PLAY ? ScreenId::CAMPAIGN_MAP : ScreenId::MENU);
         return;
     }
 
