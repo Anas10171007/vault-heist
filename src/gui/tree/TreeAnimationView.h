@@ -25,6 +25,8 @@ public:
     void reset() override;
     void onEvent(const Event& event, float progress) override;
     void draw(Renderer& renderer) const;
+    bool pickNode(sf::Vector2f worldPoint, int& nodeId) const;
+    TreeLayout currentLayout() const;
 
 private:
     struct ScreenPoint {
