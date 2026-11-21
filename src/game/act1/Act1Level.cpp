@@ -13,11 +13,49 @@ bool Act1Level::load(const LevelDef& definition) {
     return true;
 }
 
+void Act1Level::pushSnapshot() {
+    Snapshot snapshot;
+    snapshot.treeState = treeModel.serialize();
+    snapshot.targetState = targetTree.serialize();
+    snapshot.scoreState = scoring;
+    snapshot.expectedState = expected;
+    snapshot.placedState = placed;
+    snapshot.firstValue = firstValue;
+    snapshot.secondValue = secondValue;
+    snapshot.answerOne = answerOne;
+    snapshot.answerTwo = answerTwo;
+    snapshot.progress = progress;
+    snapshot.stage = stage;
+    snapshot.optimal = optimal;
+    snapshot.complete = complete;
+    history.push(snapshot);
+}
+
+bool Act1Level::undo() {
+    if (history.empty()) return false;
+    Snapshot snapshot = history.pop();
+    treeModel.deserialize(snapshot.treeState);
+    targetTree.deserialize(snapshot.targetState);
+    scoring = snapshot.scoreState;
+    expected = snapshot.expectedState;
+    placed = snapshot.placedState;
+    firstValue = snapshot.firstValue;
+    secondValue = snapshot.secondValue;
+    answerOne = snapshot.answerOne;
+    answerTwo = snapshot.answerTwo;
+    progress = snapshot.progress;
+    stage = snapshot.stage;
+    optimal = snapshot.optimal;
+    complete = snapshot.complete;
+    return true;
+}
+
 void Act1Level::reset() {
     treeModel.clear();
     targetTree.clear();
     expected.clear();
     placed.clear();
+    history.clear();
     progress = 0;
     stage = 0;
     complete = false;
@@ -199,6 +237,8 @@ PlayResult Act1Level::apply(const PlayerAction& action) {
         result.lost = scoring.isFailed();
         return result;
     }
+
+    pushSnapshot();
 
     const std::string& task = definitionData.task;
     if (task == "mirror" && action.kind == ActionKind::AUTO) {

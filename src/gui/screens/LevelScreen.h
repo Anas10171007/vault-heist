@@ -7,7 +7,6 @@
 #include "gui/screens/HeapLevelScreen.h"
 #include "gui/widgets/LevelChrome.h"
 #include "model/EventLog.h"
-#include "util/DynArray.h"
 
 namespace vh {
 class LevelScreen : public Screen {
@@ -28,7 +27,6 @@ private:
     EventLog lastEvents;
     bool heapMode;
     string message;
-    DynArray<PlayerAction> history;
     float viewZoom;
     float viewX;
     float viewY;

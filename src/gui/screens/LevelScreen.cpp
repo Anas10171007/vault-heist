@@ -31,14 +31,12 @@ void LevelScreen::onShow() {
     }
     logic = createLevelPlay(*level);
     if (!logic || !logic->load(*level)) { message = "Could not create level logic."; return; }
-    history.clear();
     message = "Click Next Step, or press N, to execute the expected player action.";
 }
 
 void LevelScreen::applyNext() {
     if (!logic || logic->isComplete() || logic->isFailed()) return;
     PlayerAction action = logic->nextAction();
-    history.push(action);
     PlayResult result = logic->apply(action);
     lastEvents.clear();
     lastEvents.extend(result.events);
@@ -47,16 +45,8 @@ void LevelScreen::applyNext() {
 }
 
 void LevelScreen::undo() {
-    if (!logic || history.empty()) { message = "Nothing to undo."; return; }
-    history.pop();
-    DynArray<PlayerAction> replay = history;
-    logic->reset();
+    if (!logic || !logic->undo()) { message = "Nothing to undo."; return; }
     lastEvents.clear();
-    for (int index = 0; index < replay.size(); index++) {
-        PlayResult result = logic->apply(replay[index]);
-        lastEvents.clear();
-        lastEvents.extend(result.events);
-    }
     message = "Last action undone.";
 }
 
@@ -130,7 +120,6 @@ int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
         else if (key->code == sf::Keyboard::Key::H) showHint();
         else if (key->code == sf::Keyboard::Key::R && logic) {
             logic->reset();
-            history.clear();
             lastEvents.clear();
             message = "Level reset.";
         } else if (key->code == sf::Keyboard::Key::Enter && logic && logic->isComplete()) {
@@ -149,7 +138,6 @@ int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     else if (LevelChrome::undoButton().contains(point)) undo();
     else if (LevelChrome::resetButton().contains(point) && logic) {
         logic->reset();
-        history.clear();
         lastEvents.clear();
         message = "Level reset.";
     } else if (LevelChrome::exitButton().contains(point)) return ScreenId::CAMPAIGN_MAP;

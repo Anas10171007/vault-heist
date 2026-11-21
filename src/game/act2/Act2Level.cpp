@@ -83,9 +83,45 @@ void Act2Level::computePlan() {
     if (optimal < 1) optimal = 1;
 }
 
+void Act2Level::pushSnapshot() {
+    Snapshot snapshot;
+    snapshot.treeState = treeModel.serialize();
+    snapshot.scoreState = scoring;
+    snapshot.expectedState = expected;
+    snapshot.stageEndsState = stageEnds;
+    snapshot.target = target;
+    snapshot.lo = lo;
+    snapshot.hi = hi;
+    snapshot.expectedCase = expectedCase;
+    snapshot.progress = progress;
+    snapshot.stage = stage;
+    snapshot.optimal = optimal;
+    snapshot.complete = complete;
+    history.push(snapshot);
+}
+
+bool Act2Level::undo() {
+    if (history.empty()) return false;
+    Snapshot snapshot = history.pop();
+    treeModel.deserialize(snapshot.treeState);
+    scoring = snapshot.scoreState;
+    expected = snapshot.expectedState;
+    stageEnds = snapshot.stageEndsState;
+    target = snapshot.target;
+    lo = snapshot.lo;
+    hi = snapshot.hi;
+    expectedCase = snapshot.expectedCase;
+    progress = snapshot.progress;
+    stage = snapshot.stage;
+    optimal = snapshot.optimal;
+    complete = snapshot.complete;
+    return true;
+}
+
 void Act2Level::reset() {
     expected.clear();
     stageEnds.clear();
+    history.clear();
     progress = 0;
     stage = 0;
     complete = false;
@@ -159,6 +195,7 @@ PlayResult Act2Level::apply(const PlayerAction& action) {
         result.lost = scoring.isFailed();
         return result;
     }
+    pushSnapshot();
     if (!sameAction(action, nextAction())) {
         return reject(definitionData.task == "bst_delete" ? "that is not the right delete case"
                                                           : "that is not the next correct move");

@@ -13,6 +13,7 @@ public:
     void reset() override;
     PlayResult apply(const PlayerAction& action) override;
     PlayResult hint() override;
+    bool undo() override;
     PlayerAction nextAction() const override;
     int optimalSteps() const override;
     bool isComplete() const override;
@@ -39,12 +40,31 @@ private:
     PlayResult finish(const char* message, EventLog& events);
     PlayResult reject(const char* message, bool rotation);
     PlayResult accept(const char* message, EventLog& events);
+    void pushSnapshot();
+
+    struct Snapshot {
+        std::string treeState;
+        ScoreSystem scoreState;
+        DynArray<int> expectedState;
+        DynArray<int> insertsState;
+        Repair repairState;
+        int progress = 0;
+        int k = 0;
+        int expectedSize = 0;
+        int stage = 0;
+        int stages = 1;
+        int phase = 0;
+        int insertIndex = 0;
+        int optimal = 1;
+        bool complete = false;
+    };
 
     LevelDef definitionData;
     AVLTree treeModel;
     ScoreSystem scoring;
     DynArray<int> expected;
     DynArray<int> inserts;
+    DynArray<Snapshot> history;
     Repair repair;
     int progress = 0;
     int k = 0;
