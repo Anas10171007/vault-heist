@@ -8,27 +8,27 @@ using namespace std;
 
 namespace vh {
 
+// Turn a plain number string like "95" or "-3" into an int. Returns false if
+// the text is empty or has any non-digit character.
 static bool readSnapshotInteger(const string& text, int& value) {
     if (text.empty()) return false;
 
-    int index = 0;
+    int i = 0;
     bool negative = false;
     if (text[0] == '-') {
         negative = true;
-        index = 1;
+        i = 1;
     }
-    if (index == (int)text.size()) return false;
+    if (i >= (int)text.size()) return false;
 
     int result = 0;
-    for (; index < (int)text.size(); index++) {
-        char character = text[index];
-        if (character < '0' || character > '9') return false;
-        int digit = character - '0';
-        if (result > (2147483647 - digit) / 10) return false;
-        result = result * 10 + digit;
+    for (; i < (int)text.size(); i++) {
+        if (text[i] < '0' || text[i] > '9') return false;
+        result = result * 10 + (text[i] - '0');
     }
 
-    value = negative ? -result : result;
+    if (negative) result = -result;
+    value = result;
     return true;
 }
 
@@ -287,31 +287,46 @@ string MaxHeap::serialize() const {
 }
 
 bool MaxHeap::deserialize(const string& snapshot) {
-    size_t divider = snapshot.find('|');
-    if (divider == string::npos) return false;
+    // Snapshot format: "heapSize|v0,v1,v2"
+    int divider = -1;
+    for (int i = 0; i < (int)snapshot.size(); i++) {
+        if (snapshot[i] == '|') {
+            divider = i;
+            break;
+        }
+    }
+    if (divider < 0) return false;
 
     int restoredSize = 0;
-    if (!readSnapshotInteger(snapshot.substr(0, divider), restoredSize) || restoredSize < 0) {
-        return false;
-    }
+    if (!readSnapshotInteger(snapshot.substr(0, divider), restoredSize)) return false;
+    if (restoredSize < 0) return false;
 
     DynArray<int> restored;
     string valuesText = snapshot.substr(divider + 1);
-    istringstream input(valuesText);
-    string token;
-    while (getline(input, token, ',')) {
-        if (token.empty()) return false;
-        int value = 0;
-        if (!readSnapshotInteger(token, value)) return false;
-        restored.push(value);
+    if (!valuesText.empty()) {
+        string token;
+        for (int i = 0; i <= (int)valuesText.size(); i++) {
+            bool atEnd = i == (int)valuesText.size();
+            if (atEnd || valuesText[i] == ',') {
+                if (token.empty()) return false;
+                int value = 0;
+                if (!readSnapshotInteger(token, value)) return false;
+                restored.push(value);
+                token.clear();
+            } else {
+                token += valuesText[i];
+            }
+        }
     }
-    if (restoredSize > restored.size() || (valuesText.empty() && restoredSize != 0)) return false;
+
+    if (restoredSize > restored.size()) return false;
+    if (valuesText.empty() && restoredSize != 0) return false;
 
     values = restored;
     heapSize = restoredSize;
     resetCounters();
-    // Snapshots can be mid-extract (heap property broken until the player
-    // heapifies). Only validate when the restored array is already a Max Heap.
+    // Undo can restore a mid-extract heap (property not fixed yet), so only
+    // run the debug check when the array is already a valid Max Heap.
     if (isMaxHeap()) debugValidate();
     return true;
 }

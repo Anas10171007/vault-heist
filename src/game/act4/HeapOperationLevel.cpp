@@ -6,7 +6,33 @@ namespace vh {
 
 HeapOperationLevel::HeapOperationLevel()
     : scoring(1), extractionGoal(0), completedExtractions(0),
-      awaitingHeapify(false), complete(false) {}
+      awaitingRestore(false), complete(false) {}
+
+int HeapOperationLevel::countOptimalSteps(const DynArray<int>& values) const {
+    MaxHeap solution(false);
+    solution.load(values);
+    solution.buildMaxHeap();
+
+    int steps = 0;
+    int goal = extractionGoal;
+    for (int extract = 0; extract < goal; extract++) {
+        if (solution.activeSize() <= 0) break;
+
+        int maximum = 0;
+        solution.extractMaxNoHeapify(maximum);
+        steps++;
+
+        // After extract, each sift-down swap is one player click (same as 4.1).
+        if (solution.activeSize() > 0 && !solution.isMaxHeap()) {
+            int swapsBefore = solution.swaps();
+            solution.repairDown(0);
+            steps += solution.swaps() - swapsBefore;
+        }
+    }
+
+    if (steps < 1) steps = 1;
+    return steps;
+}
 
 void HeapOperationLevel::load(const DynArray<int>& values, const string& task,
                               int targetExtractions) {
@@ -21,15 +47,8 @@ void HeapOperationLevel::load(const DynArray<int>& values, const string& task,
         extractionGoal = values.size();
     }
     completedExtractions = 0;
-    awaitingHeapify = false;
-
-    // Each extract is one step. Each restore is one step. The last extract that
-    // empties the heap needs no restore, so a full clear costs 2n - 1 steps.
-    int restores = extractionGoal;
-    if (extractionGoal > 0 && extractionGoal >= values.size()) restores = extractionGoal - 1;
-    int optimal = extractionGoal + restores;
-    if (optimal < 1) optimal = 1;
-    scoring.reset(optimal);
+    awaitingRestore = false;
+    scoring.reset(countOptimalSteps(values));
 
     complete = values.empty();
     if (complete) scoring.finish();
@@ -41,12 +60,12 @@ void HeapOperationLevel::pushSnapshot() {
     snapshot.scoreState = scoring;
     snapshot.wasComplete = complete;
     snapshot.extractionsDone = completedExtractions;
-    snapshot.awaitingHeapify = awaitingHeapify;
+    snapshot.awaitingRestore = awaitingRestore;
     history.push(snapshot);
 }
 
 void HeapOperationLevel::refreshComplete() {
-    if (awaitingHeapify) {
+    if (awaitingRestore) {
         complete = false;
         return;
     }
@@ -60,10 +79,37 @@ void HeapOperationLevel::refreshComplete() {
     if (complete) scoring.finish();
 }
 
+bool HeapOperationLevel::isValidSwap(int first, int second) const {
+    if (first < 0 || second < 0 || first >= heap.activeSize() ||
+        second >= heap.activeSize() || first == second) {
+        return false;
+    }
+
+    int parent = first;
+    int child = second;
+    if ((first - 1) / 2 == second && first > 0) {
+        parent = second;
+        child = first;
+    } else if ((second - 1) / 2 != first || second <= 0) {
+        return false;
+    }
+
+    if (heap.at(child) <= heap.at(parent)) return false;
+
+    int left = parent * 2 + 1;
+    int right = parent * 2 + 2;
+    int largestChild = left;
+    if (right < heap.activeSize() && heap.at(right) > heap.at(left)) {
+        largestChild = right;
+    }
+    return child == largestChild;
+}
+
 EventLog HeapOperationLevel::extractMaximum() {
     if (complete || scoring.isFailed()) return EventLog();
 
-    if (awaitingHeapify || heap.activeSize() <= 0) {
+    // Must finish restoring with swaps before the next extract.
+    if (awaitingRestore || !heap.isMaxHeap() || heap.activeSize() <= 0) {
         scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
         return EventLog();
     }
@@ -74,7 +120,7 @@ EventLog HeapOperationLevel::extractMaximum() {
     int maximum = 0;
     EventLog events = heap.extractMaxNoHeapify(maximum);
     completedExtractions++;
-    awaitingHeapify = heap.activeSize() > 0;
+    awaitingRestore = heap.activeSize() > 0 && !heap.isMaxHeap();
 
     if (taskName == "heap_sort" && heap.activeSize() == 0) {
         events.append(Event(EventType::HEAP_SORT_COMPLETE, heap.size()));
@@ -85,19 +131,25 @@ EventLog HeapOperationLevel::extractMaximum() {
     return events;
 }
 
-EventLog HeapOperationLevel::restoreHeap() {
+EventLog HeapOperationLevel::chooseSwap(int first, int second, bool& accepted) {
+    accepted = false;
     if (complete || scoring.isFailed()) return EventLog();
 
-    if (!awaitingHeapify) {
+    if (!awaitingRestore) {
         scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
         return EventLog();
     }
 
+    if (!isValidSwap(first, second)) {
+        scoring.addPenalty(PenaltyKind::INVALID_HEAP_ACTION);
+        return EventLog();
+    }
+
+    accepted = true;
     pushSnapshot();
     scoring.addStep();
-
-    EventLog events = heap.repairDown(0);
-    awaitingHeapify = false;
+    EventLog events = heap.playerSwap(first, second);
+    if (heap.isMaxHeap()) awaitingRestore = false;
     refreshComplete();
     return events;
 }
@@ -109,13 +161,13 @@ bool HeapOperationLevel::undo() {
     scoring = snapshot.scoreState;
     complete = snapshot.wasComplete;
     completedExtractions = snapshot.extractionsDone;
-    awaitingHeapify = snapshot.awaitingHeapify;
+    awaitingRestore = snapshot.awaitingRestore;
     return true;
 }
 
 bool HeapOperationLevel::isComplete() const { return complete; }
 bool HeapOperationLevel::isFailed() const { return scoring.isFailed(); }
-bool HeapOperationLevel::needsHeapify() const { return awaitingHeapify; }
+bool HeapOperationLevel::needsRestore() const { return awaitingRestore; }
 int HeapOperationLevel::activeSize() const { return heap.activeSize(); }
 
 void HeapOperationLevel::copyValues(DynArray<int>& output) const {

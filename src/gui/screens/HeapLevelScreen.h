@@ -49,7 +49,6 @@ private:
     bool isRepairLevel() const;
     bool isOperationLevel() const;
     void extractOperation();
-    void heapifyOperation();
     void undoOperation();
     bool currentComplete() const;
     bool currentFailed() const;
@@ -60,7 +59,6 @@ private:
     sf::FloatRect upButton() const;
     sf::FloatRect downButton() const;
     sf::FloatRect extractButton() const;
-    sf::FloatRect heapifyButton() const;
     sf::FloatRect undoButton() const;
     sf::FloatRect resetButton() const;
     sf::FloatRect continueButton() const;

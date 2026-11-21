@@ -14,11 +14,11 @@ public:
 
     void load(const DynArray<int>& values, const string& task, int targetExtractions = 0);
     EventLog extractMaximum();
-    EventLog restoreHeap();
+    EventLog chooseSwap(int first, int second, bool& accepted);
     bool undo();
     bool isComplete() const;
     bool isFailed() const;
-    bool needsHeapify() const;
+    bool needsRestore() const;
     int activeSize() const;
     void copyValues(DynArray<int>& output) const;
     const ScoreSystem& score() const;
@@ -29,7 +29,7 @@ private:
         ScoreSystem scoreState;
         bool wasComplete;
         int extractionsDone;
-        bool awaitingHeapify;
+        bool awaitingRestore;
     };
 
     MaxHeap heap;
@@ -38,11 +38,13 @@ private:
     DynArray<Snapshot> history;
     int extractionGoal;
     int completedExtractions;
-    bool awaitingHeapify;
+    bool awaitingRestore;
     bool complete;
 
     void pushSnapshot();
     void refreshComplete();
+    bool isValidSwap(int first, int second) const;
+    int countOptimalSteps(const DynArray<int>& values) const;
 };
 
 }
