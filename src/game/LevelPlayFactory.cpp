@@ -2,6 +2,7 @@
 
 #include "game/act1/Act1Level.h"
 #include "game/act2/Act2Level.h"
+#include "game/act3/Act3Level.h"
 
 namespace vh {
 
@@ -14,6 +15,10 @@ LevelPlay* createLevelPlay(const LevelDef& definition) {
     if (task == "bst_search" || task == "bst_insert" || task == "bst_delete" ||
         task == "bst_range" || task == "bst_boss") {
         return new Act2Level();
+    }
+    if (task == "avl_badges" || task == "avl_rotate_single" || task == "avl_rotate_double" ||
+        task == "avl_auto_predict" || task == "avl_kth") {
+        return new Act3Level();
     }
     return nullptr;
 }

@@ -3,14 +3,54 @@
   "act": 3,
   "levels": [
     {
+      "id": "3.1",
+      "title": "Security badges",
+      "mission": "Check every badge in the balanced vault, one node at a time.",
+      "structure": "avl",
+      "task": "avl_badges",
+      "seed": 3101,
+      "data": {"source": "explicit", "tree": "40 20 10 # # 30 # # 60 50 # # 70 # #"},
+      "rules": {}
+    },
+    {
       "id": "3.2",
-      "title": "Manual repair: single rotation",
-      "mission": "The left side has grown too heavy. Pick the pivot and rotate the vault back into balance.",
+      "title": "Manual repair: single rotations",
+      "mission": "Four lopsided subtrees: click each pivot to apply the single rotation it needs.",
       "structure": "avl",
       "task": "avl_rotate_single",
       "seed": 3102,
-      "data": {"source": "explicit", "tree": "30 20 10 # # # #"},
-      "rules": {"rotation": "LL"}
+      "data": {"source": "explicit", "tree": "100 50 30 20 10 # # # # 70 # 80 # 90 # # # 150 130 120 110 # # # # 170 # 180 # 190 # # #"},
+      "rules": {"rotation": "LL RR"}
+    },
+    {
+      "id": "3.3",
+      "title": "Manual repair: double rotations",
+      "mission": "Name LR or RL first for each crooked subtree, then click its pivot.",
+      "structure": "avl",
+      "task": "avl_rotate_double",
+      "seed": 3103,
+      "data": {"source": "explicit", "tree": "100 50 30 20 # 25 # # # 70 # 80 75 # # # 150 130 120 # 125 # # # 170 # 180 175 # # #"},
+      "rules": {"rotation": "LR RL"}
+    },
+    {
+      "id": "3.4",
+      "title": "Auto repair: predict the rotation",
+      "mission": "Name the rotation each insertion will cause before the vault rebalances itself.",
+      "structure": "avl",
+      "task": "avl_auto_predict",
+      "seed": 3104,
+      "data": {"source": "explicit", "tree": "40 20 10 # # 30 # # 60 50 # # 70 # #"},
+      "rules": {"inserts": [5, 35, 75, 65]}
+    },
+    {
+      "id": "3.5",
+      "title": "Boss: order statistics",
+      "mission": "Read kth(n-k+1), rotate to repair the vault and verify the node count twice.",
+      "structure": "avl",
+      "task": "avl_kth",
+      "seed": 3105,
+      "data": {"source": "explicit", "tree": "40 20 10 # # 30 # # 60 50 # # 70 # #"},
+      "rules": {"k": 2}
     }
   ]
 }

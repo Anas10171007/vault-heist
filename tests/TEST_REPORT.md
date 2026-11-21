@@ -20,7 +20,7 @@ Each check prints one `PASS <case>` or `FAIL <case>` line. The run ends with
 | Scope | Checks | Passed | Failed |
 | --- | ---: | ---: | ---: |
 | Tree suites (BinaryTree, BST, AVL, validator, layout) | 415 | 415 | 0 |
-| Whole executable, all suites | 537 | 537 | 0 |
+| Whole executable, all suites | 579 | 579 | 0 |
 
 The non-tree suites (utilities, animation, levels, score, heap model, heap
 validator, heap view, heap build level) are included in the whole-executable

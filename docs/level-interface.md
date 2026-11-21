@@ -45,3 +45,19 @@ All optimal-step counts and the alarm capacity come from the model and
 clicks charge `PenaltyKind::WRONG_TRAVERSAL` (+1 alarm); wrong rotations charge
 `PenaltyKind::WRONG_ROTATION` (+2 alarm, -50 points); a hint charges
 `PenaltyKind::HINT` and caps the result at two stars.
+
+## Act-specific notes
+
+- **Act 1:** `answer(value)` is used for the height/diameter and LCA/path
+  questions. `AUTO` on a mirror level performs every remaining swap but records
+  a hint, so it cannot earn three stars.
+- **Act 2:** `chooseCase(DeleteCase::...)` selects the delete case before
+  `confirmAction()` performs the delete. `bst_boss` recomputes the alarm
+  capacity from the remaining model steps after each checkpoint, so the
+  capacity shrinks and the per-stage score history is cleared.
+- **Act 3:** single rotations need only `clickNode(pivot)`. Double rotations
+  need `chooseCase(RotationType::LR/RL)` and then `clickNode(pivot)`. Auto
+  prediction reads the `extra` field of `ROTATE` events from a serialized clone
+  with the candidate key inserted; `-1` means no rotation. The kth boss uses
+  `kth(n - k + 1)`, an answer, then a repair rotation and a `size()` check
+  before the next stage.

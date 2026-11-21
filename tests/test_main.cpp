@@ -12,6 +12,7 @@ int runHeapValidatorTests();
 int runHeapViewTests();
 int runAct1LevelTests();
 int runAct2LevelTests();
+int runAct3LevelTests();
 int runBinaryTreeTests();
 int runBSTTests();
 int runAVLTests();
@@ -100,6 +101,7 @@ int main() {
     failed += runHeapViewTests();
     failed += runAct1LevelTests();
     failed += runAct2LevelTests();
+    failed += runAct3LevelTests();
     failed += runBinaryTreeTests();
     failed += runBSTTests();
     failed += runAVLTests();
