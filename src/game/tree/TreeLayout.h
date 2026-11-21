@@ -31,6 +31,8 @@ struct LayoutBox {
 class TreeLayout {
 public:
     TreeLayout() = default;
+    TreeLayout(const DynArray<LayoutPoint>& storedPoints, const LayoutBox& storedBox)
+        : points(storedPoints), box(storedBox) {}
 
     static TreeLayout compute(const BinaryTree& tree, float xSpacing = 64.f,
                               float ySpacing = 90.f);

@@ -18,6 +18,7 @@ int runBSTTests();
 int runAVLTests();
 int runTreeValidatorTests();
 int runTreeLayoutTests();
+int runTreeMotionTests();
 int runHeapBuildLevelTests();
 int main() {
     using namespace vh;
@@ -107,6 +108,7 @@ int main() {
     failed += runAVLTests();
     failed += runTreeValidatorTests();
     failed += runTreeLayoutTests();
+    failed += runTreeMotionTests();
     failed += runHeapBuildLevelTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;
