@@ -167,6 +167,22 @@ EventLog MaxHeap::playerSwap(int first, int second) {
     return events;
 }
 
+EventLog MaxHeap::repairUp(int index) {
+    EventLog events(recording);
+    if (index < 0 || index >= heapSize) return events;
+    heapifyUp(index, events);
+    events.append(Event(EventType::DONE));
+    return events;
+}
+
+EventLog MaxHeap::repairDown(int index) {
+    EventLog events(recording);
+    if (index < 0 || index >= heapSize) return events;
+    heapifyDown(index, heapSize, HeapReason::SIFT_DOWN, events);
+    events.append(Event(EventType::DONE));
+    return events;
+}
+
 bool MaxHeap::isMaxHeap() const {
     for (int index = 0; index < heapSize / 2; index++) {
         int left = leftIndex(index);

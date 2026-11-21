@@ -14,7 +14,7 @@ int runLevelManagerTests() {
 
     LevelManager manager;
     check(manager.loadAll("data/levels"), "level manager loads all four act files");
-    check(manager.size() == 5, "level manager stores every sample level");
+    check(manager.size() == 6, "level manager stores every sample level");
 
     const LevelDef* patrol = manager.load("1.1");
     check(patrol != nullptr && patrol->structure == "binary" && patrol->rules.traversal == "preorder",
@@ -27,6 +27,9 @@ int runLevelManagerTests() {
     const LevelDef* heap = manager.load("4.1");
     check(heap != nullptr && heap->task == "heap_build" && heap->data.values[4] == 95,
           "Act 4 sample is found by id");
+    const LevelDef* repair = manager.load("4.2");
+    check(repair != nullptr && repair->task == "heap_repair" && repair->data.values[0] == 20,
+          "Act 4 repair level keeps its disturbed root");
     check(manager.load("9.9") == nullptr, "unknown level id returns null");
 
     LevelManager futureFields;

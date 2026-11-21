@@ -2,6 +2,7 @@
 #include <string>
 #include "game/LevelDef.h"
 #include "game/act4/HeapBuildLevel.h"
+#include "game/act4/HeapRepairLevel.h"
 #include "gui/core/AnimationController.h"
 #include "gui/core/Screen.h"
 #include "gui/core/Theme.h"
@@ -24,7 +25,8 @@ private:
     Theme& theme;
     LevelDef level;
     bool levelLoaded;
-    HeapBuildLevel logic;
+    HeapBuildLevel buildLogic;
+    HeapRepairLevel repairLogic;
     HeapView heapView;
     AnimationController animation;
     AlarmMeter alarmMeter;
@@ -34,9 +36,17 @@ private:
 
     void resetLevel();
     void selectIndex(int index);
-    bool loadLevel();
+    void chooseDirection(int direction);
+    bool loadLevel(const string& id);
+    bool isBuildLevel() const;
+    bool currentComplete() const;
+    bool currentFailed() const;
+    const ScoreSystem& currentScore() const;
+    void copyCurrentValues(DynArray<int>& output) const;
     void drawButton(sf::RenderWindow& window, Renderer& renderer,
                     sf::FloatRect bounds, const string& label) const;
+    sf::FloatRect upButton() const;
+    sf::FloatRect downButton() const;
     sf::FloatRect resetButton() const;
     sf::FloatRect continueButton() const;
     sf::FloatRect menuButton() const;

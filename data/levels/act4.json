@@ -11,6 +11,16 @@
       "seed": 4711,
       "data": {"source": "explicit", "values": [90, 72, 84, 31, 95, 79, 77]},
       "rules": {}
+    },
+    {
+      "id": "4.2",
+      "title": "Repair the Security Locks",
+      "mission": "Choose heapify up or heapify down to restore the disturbed Max Heap.",
+      "structure": "maxheap",
+      "task": "heap_repair",
+      "seed": 4722,
+      "data": {"source": "explicit", "values": [20, 90, 84, 31, 72, 79, 77]},
+      "rules": {}
     }
   ]
 }
