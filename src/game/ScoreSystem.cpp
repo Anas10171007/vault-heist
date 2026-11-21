@@ -87,6 +87,10 @@ int ScoreSystem::steps() const {
     return stepCount;
 }
 
+int ScoreSystem::optimalSteps() const {
+    return optimalStepCount;
+}
+
 int ScoreSystem::alarm() const {
     return alarmSteps;
 }

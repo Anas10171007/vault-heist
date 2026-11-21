@@ -24,6 +24,7 @@ public:
     int stars() const;
     int score() const;
     int steps() const;
+    int optimalSteps() const;
     int alarm() const;
     int alarmCapacity() const;
     int penalties() const;

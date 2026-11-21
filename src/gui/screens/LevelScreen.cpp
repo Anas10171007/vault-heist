@@ -58,10 +58,20 @@ void LevelScreen::storeResult(const ScoreSystem& score) {
     session.score = score.score();
     session.stars = score.stars();
     session.steps = score.steps();
+    session.optimalSteps = score.optimalSteps();
     session.penalties = score.penalties();
     session.resultMessage = "Mission " + session.selectedLevel + " complete";
     session.sortedArrayText.clear();
     session.finalVaultUnlocked = false;
+    session.nextLevelId.clear();
+    session.recordStars(session.selectedLevel, score.stars());
+
+    for (int index = 0; index < levels.size(); index++) {
+        if (levels.at(index).id == session.selectedLevel && index + 1 < levels.size()) {
+            session.nextLevelId = levels.at(index + 1).id;
+            break;
+        }
+    }
 }
 
 int LevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {

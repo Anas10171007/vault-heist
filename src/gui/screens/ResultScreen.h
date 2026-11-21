@@ -14,6 +14,7 @@ private:
     Theme& theme;
     GameSession& session;
     sf::FloatRect retryButton() const;
+    sf::FloatRect nextButton() const;
     sf::FloatRect mapButton() const;
 };
 }

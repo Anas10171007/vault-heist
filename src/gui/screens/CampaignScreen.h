@@ -18,6 +18,7 @@ private:
     LevelManager levels;
     bool loaded;
     sf::FloatRect levelBounds(int index) const;
+    bool isUnlocked(int index) const;
 };
 
 }
