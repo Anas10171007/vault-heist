@@ -5,7 +5,8 @@
 #include "gui/core/Screen.h"
 #include "gui/core/Theme.h"
 #include "gui/screens/HeapLevelScreen.h"
-#include "gui/widgets/AlarmMeter.h"
+#include "gui/widgets/LevelChrome.h"
+#include "model/EventLog.h"
 #include "util/DynArray.h"
 
 namespace vh {
@@ -22,21 +23,20 @@ private:
     GameSession& session;
     LevelManager levels;
     HeapLevelScreen heapScreen;
+    LevelChrome chrome;
     LevelPlay* logic;
-    AlarmMeter alarm;
+    EventLog lastEvents;
     bool heapMode;
     string message;
     DynArray<PlayerAction> history;
     float viewZoom;
     float viewX;
     float viewY;
-    sf::FloatRect nextButton() const;
-    sf::FloatRect hintButton() const;
-    sf::FloatRect resetButton() const;
-    sf::FloatRect exitButton() const;
-    sf::FloatRect undoButton() const;
+    bool dragging;
+    sf::Vector2i lastDragPixel;
     void applyNext();
     void undo();
+    void showHint();
     void storeResult(const ScoreSystem& score);
 };
 }

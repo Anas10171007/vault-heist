@@ -7,8 +7,8 @@
 #include "gui/core/AnimationController.h"
 #include "gui/core/Screen.h"
 #include "gui/core/Theme.h"
-#include "gui/widgets/AlarmMeter.h"
 #include "gui/widgets/HeapView.h"
+#include "gui/widgets/LevelChrome.h"
 
 using namespace std;
 
@@ -36,7 +36,7 @@ private:
     HeapOperationLevel operationLogic;
     HeapView heapView;
     AnimationController animation;
-    AlarmMeter alarmMeter;
+    LevelChrome chrome;
     int firstSelection;
     bool waitingForAnimation;
     string message;
@@ -50,19 +50,13 @@ private:
     bool isOperationLevel() const;
     void extractOperation();
     void undoOperation();
+    void showHint();
+    void adjustSpeed(bool faster);
     bool currentComplete() const;
     bool currentFailed() const;
     const ScoreSystem& currentScore() const;
+    string objectiveText() const;
     void copyCurrentValues(DynArray<int>& output) const;
-    void drawButton(sf::RenderWindow& window, Renderer& renderer,
-                    sf::FloatRect bounds, const string& label) const;
-    sf::FloatRect upButton() const;
-    sf::FloatRect downButton() const;
-    sf::FloatRect extractButton() const;
-    sf::FloatRect undoButton() const;
-    sf::FloatRect resetButton() const;
-    sf::FloatRect continueButton() const;
-    sf::FloatRect menuButton() const;
 };
 
 }

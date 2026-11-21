@@ -46,6 +46,8 @@ public:
     bool isPlaying() const { return playing; }
     int completedCount() const { return completed; }
     int eventCount() const { return events.size(); }
+    const EventLog& log() const { return events; }
+    const Event& eventAt(int index) const { return events.at(index); }
     double getSpeed() const { return speed; }
 
     void setSpeed(double value) {

@@ -307,9 +307,40 @@ void HeapLevelScreen::undoOperation() {
     message = "Last operation undone.";
 }
 
+void HeapLevelScreen::showHint() {
+    if (isBuildLevel()) {
+        message = "Hint: pick a BAD parent, then its largest child.";
+    } else if (isRepairLevel()) {
+        message = "Hint: select a BAD node, then the shorter heapify direction.";
+    } else if (operationLogic.needsRestore()) {
+        message = "Hint: swap each BAD parent with its larger child.";
+    } else {
+        message = "Hint: select the root (index 0), then Extract Max.";
+    }
+}
+
+void HeapLevelScreen::adjustSpeed(bool faster) {
+    double next = animation.getSpeed() * (faster ? 1.25 : 0.8);
+    animation.setSpeed(next);
+    int hundredths = static_cast<int>(animation.getSpeed() * 100.0 + 0.5);
+    message = "Animation speed: " + to_string(hundredths / 100) + "." +
+              to_string(hundredths % 100) + "x";
+}
+
+string HeapLevelScreen::objectiveText() const {
+    if (isBuildLevel()) return "Build a Max Heap by swapping BAD pairs.";
+    if (isRepairLevel()) return "Repair the disturbed heap with Up/Down.";
+    if (level.task == "heap_race") {
+        return "Extract " + to_string(level.rules.count) + " maxima before alarm.";
+    }
+    if (level.task == "heap_sort") return "Finish Heap Sort: extract and restore.";
+    return "Extract max, then restore with swaps.";
+}
+
 int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
     const sf::Event::KeyPressed* key = event.getIf<sf::Event::KeyPressed>();
     if (key != nullptr) {
+        if (key->code == sf::Keyboard::Key::Escape) return ScreenId::CAMPAIGN_MAP;
         if (key->code == sf::Keyboard::Key::Num1) loadLevel("4.1");
         else if (key->code == sf::Keyboard::Key::Num2) loadLevel("4.2");
         else if (key->code == sf::Keyboard::Key::Num3) loadLevel("4.3");
@@ -317,6 +348,7 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
         else if (key->code == sf::Keyboard::Key::Num5) loadLevel("4.5");
         else if (key->code == sf::Keyboard::Key::R) resetLevel();
         else if (key->code == sf::Keyboard::Key::Z) undoOperation();
+        else if (key->code == sf::Keyboard::Key::H) showHint();
         else if (key->code == sf::Keyboard::Key::P) { animation.restart(); animation.play(); }
         else if (key->code == sf::Keyboard::Key::Space) {
             if (animation.isPlaying()) animation.pause();
@@ -334,31 +366,48 @@ int HeapLevelScreen::handleEvent(const sf::Event& event, sf::RenderWindow& windo
     }
 
     sf::Vector2f point = window.mapPixelToCoords(click->position);
-    if (resetButton().contains(point)) {
+    if (LevelChrome::resetButton().contains(point)) {
         resetLevel();
         return ScreenId::NONE;
     }
-    if (levelLoaded && undoButton().contains(point)) {
+    if (levelLoaded && LevelChrome::undoButton().contains(point)) {
         undoOperation();
         return ScreenId::NONE;
     }
-    if (menuButton().contains(point)) return ScreenId::MENU;
-    if (levelLoaded && currentComplete() && continueButton().contains(point)) {
+    if (LevelChrome::hintButton().contains(point)) {
+        showHint();
+        return ScreenId::NONE;
+    }
+    if (LevelChrome::replayButton().contains(point)) {
+        animation.restart();
+        animation.play();
+        return ScreenId::NONE;
+    }
+    if (LevelChrome::slowerButton().contains(point)) {
+        adjustSpeed(false);
+        return ScreenId::NONE;
+    }
+    if (LevelChrome::fasterButton().contains(point)) {
+        adjustSpeed(true);
+        return ScreenId::NONE;
+    }
+    if (LevelChrome::exitButton().contains(point)) return ScreenId::CAMPAIGN_MAP;
+    if (levelLoaded && currentComplete() && LevelChrome::continueButton().contains(point)) {
         return ScreenId::RESULT;
     }
 
     bool replayAtEnd = animation.completedCount() == animation.eventCount();
     bool canAct = levelLoaded && !currentComplete() && !currentFailed() &&
                   !waitingForAnimation && replayAtEnd;
-    if (isOperationLevel() && canAct && extractButton().contains(point)) {
+    if (isOperationLevel() && canAct && LevelChrome::opButtonWide().contains(point)) {
         extractOperation();
         return ScreenId::NONE;
     }
-    if (isRepairLevel() && canAct && upButton().contains(point)) {
+    if (isRepairLevel() && canAct && LevelChrome::opButtonA().contains(point)) {
         chooseDirection(HeapDirection::UP);
         return ScreenId::NONE;
     }
-    if (isRepairLevel() && canAct && downButton().contains(point)) {
+    if (isRepairLevel() && canAct && LevelChrome::opButtonB().contains(point)) {
         chooseDirection(HeapDirection::DOWN);
         return ScreenId::NONE;
     }
@@ -392,119 +441,43 @@ void HeapLevelScreen::update(float seconds) {
     }
 }
 
-sf::FloatRect HeapLevelScreen::upButton() const {
-    return {{835.f, 448.f}, {105.f, 38.f}};
-}
-
-sf::FloatRect HeapLevelScreen::downButton() const {
-    return {{950.f, 448.f}, {105.f, 38.f}};
-}
-
-sf::FloatRect HeapLevelScreen::extractButton() const {
-    return {{835.f, 448.f}, {220.f, 38.f}};
-}
-
-sf::FloatRect HeapLevelScreen::undoButton() const {
-    return {{835.f, 400.f}, {220.f, 38.f}};
-}
-
-sf::FloatRect HeapLevelScreen::resetButton() const {
-    return {{840.f, 500.f}, {210.f, 38.f}};
-}
-
-sf::FloatRect HeapLevelScreen::continueButton() const {
-    return {{840.f, 548.f}, {210.f, 38.f}};
-}
-
-sf::FloatRect HeapLevelScreen::menuButton() const {
-    return {{840.f, 596.f}, {210.f, 38.f}};
-}
-
-void HeapLevelScreen::drawButton(sf::RenderWindow& window, Renderer& renderer,
-                                 sf::FloatRect bounds, const string& label) const {
-    sf::RectangleShape button = theme.makeButton(bounds.position, bounds.size);
-    window.draw(button);
-    renderer.drawText(label, bounds.position + bounds.size / 2.f,
-                      16, Palette::TEXT, true);
-}
-
 void HeapLevelScreen::draw(sf::RenderWindow& window) {
     Renderer renderer(window, theme.getFont());
-    sf::RectangleShape panel = theme.makePanel({815.f, 45.f}, {260.f, 620.f});
-    window.draw(panel);
+    chrome.drawSidePanel(window, theme);
 
     if (levelLoaded) {
         heapView.draw(renderer, {40.f, 105.f}, 750.f, {40.f, 520.f}, 750.f);
-        renderer.drawText(level.id, {835.f, 68.f}, 18, Palette::TARGET, false);
-        renderer.drawText(level.title, {835.f, 96.f}, 16, Palette::TEXT, false);
-        renderer.drawText("Levels: 1 Build  2 Repair  3-5 Ops", {835.f, 126.f},
-                          12, Palette::MUTED, false);
-
-        if (isBuildLevel()) {
-            renderer.drawText("Build a Max Heap manually.", {835.f, 158.f},
-                              15, Palette::TEXT, false);
-            renderer.drawText("1. Select a smaller parent", {835.f, 188.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("2. Select its largest child", {835.f, 211.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("3. Remove every BAD marker", {835.f, 234.f},
-                              13, Palette::TEXT, false);
-        } else if (isRepairLevel()) {
-            renderer.drawText("Restore the disturbed heap.", {835.f, 158.f},
-                              15, Palette::TEXT, false);
-            renderer.drawText("1. Select a BAD node", {835.f, 188.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("2. Choose Up or Down", {835.f, 211.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("3. Prefer the shorter repair", {835.f, 234.f},
-                              13, Palette::TEXT, false);
-        } else {
-            string goal = "Extract maxima into sorted order.";
-            if (level.task == "heap_sort") goal = "Complete the full Heap Sort.";
-            if (level.task == "heap_race") {
-                goal = "Beat the alarm: extract " + to_string(level.rules.count) +
-                       " maxima.";
-            }
-            renderer.drawText(goal, {835.f, 158.f}, 15, Palette::TEXT, false);
-            renderer.drawText("1. Select root, then Extract Max", {835.f, 188.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("2. Swap BAD parent-child pairs", {835.f, 211.f},
-                              13, Palette::TEXT, false);
-            renderer.drawText("3. Repeat until the goal is met", {835.f, 234.f},
-                              13, Palette::TEXT, false);
-        }
-
-        alarmMeter.draw(window, renderer, currentScore(), {835.f, 278.f}, 220.f);
-        renderer.drawText("STEPS: " + to_string(currentScore().steps()),
-                          {835.f, 318.f}, 14, Palette::TEXT, false);
-        renderer.drawText("PENALTIES: " + to_string(currentScore().penalties()),
-                          {835.f, 343.f}, 14, Palette::TEXT, false);
-        renderer.drawText(message, {835.f, 390.f}, 12,
-                          currentFailed() ? Palette::VIOLATION : Palette::WARNING,
-                          false);
+        chrome.drawHud(window, renderer, currentScore(), level.id, level.title,
+                       objectiveText(), message, currentFailed());
+        int highlight = animation.completedCount() - 1;
+        chrome.drawEventLog(renderer, animation.log(), highlight);
     } else {
-        renderer.drawText("ACT 4 LOAD ERROR", {835.f, 80.f},
+        renderer.drawText("ACT 4 LOAD ERROR", {820.f, 80.f},
                           20, Palette::VIOLATION, false);
-        renderer.drawText(message, {835.f, 125.f}, 13, Palette::TEXT, false);
+        renderer.drawText(message, {820.f, 125.f}, 13, Palette::TEXT, false);
     }
 
     if (levelLoaded && isRepairLevel() && !currentComplete()) {
-        drawButton(window, renderer, upButton(), "Heapify Up");
-        drawButton(window, renderer, downButton(), "Heapify Down");
-    }
-    if (levelLoaded && !currentComplete()) {
-        drawButton(window, renderer, undoButton(), "Undo");
+        chrome.drawButton(window, theme, renderer, LevelChrome::opButtonA(), "Up");
+        chrome.drawButton(window, theme, renderer, LevelChrome::opButtonB(), "Down");
     }
     if (levelLoaded && isOperationLevel() && !currentComplete()) {
-        drawButton(window, renderer, extractButton(), "Extract Max");
+        chrome.drawButton(window, theme, renderer, LevelChrome::opButtonWide(), "Extract Max");
     }
-    drawButton(window, renderer, resetButton(), "Reset Level");
+    if (levelLoaded && !currentComplete()) {
+        chrome.drawButton(window, theme, renderer, LevelChrome::undoButton(), "Undo [Z]");
+    }
+    chrome.drawButton(window, theme, renderer, LevelChrome::hintButton(), "Hint [H]");
+    chrome.drawButton(window, theme, renderer, LevelChrome::replayButton(), "Replay");
+    chrome.drawButton(window, theme, renderer, LevelChrome::resetButton(), "Reset [R]");
+    chrome.drawButton(window, theme, renderer, LevelChrome::slowerButton(), "Slower");
+    chrome.drawButton(window, theme, renderer, LevelChrome::fasterButton(), "Faster");
+    chrome.drawButton(window, theme, renderer, LevelChrome::exitButton(), "Campaign [Esc]");
     if (levelLoaded && currentComplete()) {
-        drawButton(window, renderer, continueButton(), "View Result");
+        chrome.drawButton(window, theme, renderer, LevelChrome::continueButton(), "View Result");
     }
-    drawButton(window, renderer, menuButton(), "Main Menu");
-    renderer.drawText("R reset | Z undo | P replay | Space pause | arrows step",
-                      {550.f, 692.f}, 13, Palette::MUTED, true);
+    chrome.drawHelp(renderer,
+                    "Z undo | H hint | P replay | Space pause | arrows step | Esc map");
 }
 
 }
