@@ -216,8 +216,9 @@ void LevelPlayScreen::useHint() {
     message = result.message;
 }
 
-void LevelPlayScreen::update(float deltaSeconds) {
+int LevelPlayScreen::update(float deltaSeconds) {
     animation.update(deltaSeconds);
+    return ScreenId::NONE;
 }
 
 void LevelPlayScreen::onShow() {

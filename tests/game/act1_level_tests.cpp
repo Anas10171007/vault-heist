@@ -76,6 +76,9 @@ int runAct1LevelTests() {
     check(wrong.wrong && traversal.score().alarm() == alarmBefore + 1 &&
               traversal.score().penalties() == 1 && traversal.score().score() == scoreBefore - 10,
           "wrong act 1 click adds one alarm and no flat point penalty");
+    check(traversal.undo() && traversal.score().alarm() == alarmBefore &&
+              traversal.score().penalties() == 0 && !traversal.undo(),
+          "act 1 undo restores score snapshot and clears history");
     check(playPerfectly(traversal, 100), "a level still wins after a wrong click");
 
     Act1Level hinted;

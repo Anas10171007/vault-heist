@@ -50,5 +50,13 @@ int runHeapBuildLevelTests() {
     check(level.valueAt(0) == modelRoot,
           "heap build snapshot does not change the model");
 
+    HeapBuildLevel undoLevel;
+    undoLevel.load(values);
+    undoLevel.chooseSwap(1, 4, accepted);
+    int afterSwap = undoLevel.valueAt(1);
+    check(undoLevel.undo() && undoLevel.valueAt(1) == 72 &&
+          undoLevel.score().steps() == 0 && afterSwap == 95,
+          "build level undo restores heap values and score");
+
     return failed;
 }

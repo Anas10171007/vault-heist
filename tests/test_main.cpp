@@ -21,6 +21,9 @@ int runTreeValidatorTests();
 int runTreeLayoutTests();
 int runTreeMotionTests();
 int runHeapBuildLevelTests();
+int runHeapRepairLevelTests();
+int runHeapOperationLevelTests();
+int runSaveLeaderboardTests();
 int main() {
     using namespace vh;
     int failed = 0;
@@ -112,6 +115,9 @@ int main() {
     failed += runTreeLayoutTests();
     failed += runTreeMotionTests();
     failed += runHeapBuildLevelTests();
+    failed += runHeapRepairLevelTests();
+    failed += runHeapOperationLevelTests();
+    failed += runSaveLeaderboardTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;
 }

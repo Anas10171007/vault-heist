@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "model/EventLog.h"
 #include "util/DynArray.h"
 
@@ -14,8 +15,13 @@ public:
     EventLog buildMaxHeap();
     EventLog insert(int value);
     EventLog extractMax(int& maximum);
+    EventLog extractMaxNoHeapify(int& maximum);
+    // After root↔last swap: shrink active heap so the last cell becomes sorted.
+    EventLog sealLastSorted(int& sealedValue);
     EventLog heapSort();
     EventLog playerSwap(int first, int second);
+    EventLog repairUp(int index);
+    EventLog repairDown(int index);
 
     bool isMaxHeap() const;
     bool isSortedAscending() const;
@@ -28,6 +34,8 @@ public:
     int swaps() const;
     void resetCounters();
     void setRecordEvents(bool enabled);
+    std::string serialize() const;
+    bool deserialize(const std::string& snapshot);
 
 private:
     friend class HeapValidator;

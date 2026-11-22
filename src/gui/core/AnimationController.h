@@ -46,6 +46,8 @@ public:
     bool isPlaying() const { return playing; }
     int completedCount() const { return completed; }
     int eventCount() const { return events.size(); }
+    const EventLog& log() const { return events; }
+    const Event& eventAt(int index) const { return events.at(index); }
     double getSpeed() const { return speed; }
 
     void setSpeed(double value) {
@@ -102,6 +104,17 @@ public:
     void finishInstantly() {
         pause();
         completed = events.size();
+        ticks = 0;
+        accumulated = 0;
+        rebuild();
+    }
+
+    // Scrubber seek: rebuild visuals only. Never touches the live model.
+    void seekTo(int index) {
+        pause();
+        if (index < 0) index = 0;
+        if (index > events.size()) index = events.size();
+        completed = index;
         ticks = 0;
         accumulated = 0;
         rebuild();

@@ -70,7 +70,7 @@ int runLevelSnapshotTests() {
 
     LevelManager manager;
     bool loaded = manager.loadAll("data/levels");
-    check(loaded && manager.size() == 16, "snapshot suite loads all four act files");
+    check(loaded && manager.size() == 20, "snapshot suite loads all four act files");
     if (!loaded) return failed;
 
     bool allRoundTrips = true;

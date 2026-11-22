@@ -184,12 +184,52 @@ void Act3Level::computePlan() {
     if (optimal < 1) optimal = 1;
 }
 
+void Act3Level::pushSnapshot() {
+    Snapshot snapshot;
+    snapshot.treeState = treeModel.serialize();
+    snapshot.scoreState = scoring;
+    snapshot.expectedState = expected;
+    snapshot.insertsState = inserts;
+    snapshot.repairState = repair;
+    snapshot.progress = progress;
+    snapshot.k = k;
+    snapshot.expectedSize = expectedSize;
+    snapshot.stage = stage;
+    snapshot.stages = stages;
+    snapshot.phase = phase;
+    snapshot.insertIndex = insertIndex;
+    snapshot.optimal = optimal;
+    snapshot.complete = complete;
+    history.push(snapshot);
+}
+
+bool Act3Level::undo() {
+    if (history.empty()) return false;
+    Snapshot snapshot = history.pop();
+    treeModel.deserialize(snapshot.treeState);
+    scoring = snapshot.scoreState;
+    expected = snapshot.expectedState;
+    inserts = snapshot.insertsState;
+    repair = snapshot.repairState;
+    progress = snapshot.progress;
+    k = snapshot.k;
+    expectedSize = snapshot.expectedSize;
+    stage = snapshot.stage;
+    stages = snapshot.stages;
+    phase = snapshot.phase;
+    insertIndex = snapshot.insertIndex;
+    optimal = snapshot.optimal;
+    complete = snapshot.complete;
+    return true;
+}
+
 void Act3Level::reset() {
     progress = 0;
     stage = 0;
     phase = 0;
     insertIndex = 0;
     complete = false;
+    history.clear();
     buildInitialTree();
     expectedSize = treeModel.size();
     computePlan();
@@ -277,6 +317,8 @@ PlayResult Act3Level::apply(const PlayerAction& action) {
         result.lost = scoring.isFailed();
         return result;
     }
+
+    pushSnapshot();
 
     const std::string& task = definitionData.task;
     bool rotationTask = task == "avl_rotate_single" || task == "avl_rotate_double" ||

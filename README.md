@@ -38,7 +38,7 @@ All paths below are relative to the repository root:
 | --- | --- |
 | `.\build\bin\vaultheist.exe` | Game shell (menu, campaign map, briefing, Act 4 level play). |
 | `.\build\bin\tests.exe` | Full unit test suite; prints one `PASS`/`FAIL` line per case. |
-| `.\build\bin\bench.exe` | Benchmark binary; currently prints `bench: no benchmarks yet`. |
+| `.\build\bin\bench.exe` | Generates seven deterministic CSVs in `bench/results`. |
 | `.\build\bin\renderdemo.exe` | Renderer demo. |
 | `.\build\bin\heapviewdemo.exe` | Heap tree + array view demo. |
 | `.\build\bin\treeanimdemo.exe` | Tree animation demo; `--smoke` opens, plays one insert, saves a PNG and closes. |
@@ -86,7 +86,7 @@ closes automatically.
 | `docs` | Feature and task notes. `tests/TEST_REPORT.md` is generated from real test output. |
 | `assets/fonts` | `Inter-Regular.ttf` and its licence. |
 | `screenshots` | PNG written by `treeanimdemo` `P` / `--smoke`. |
-| `bench` | `bench_main.cpp`; no benchmarks implemented yet. |
+| `bench` | Deterministic BST, AVL, heap, Heap Sort, and quadratic-sort benchmarks. |
 
 ## Tests
 
@@ -97,13 +97,14 @@ Run from the repository root:
 ```
 
 The suite prints `PASS <case>` / `FAIL <case>` and ends with `all passed` when
-everything succeeds. `tests/TEST_REPORT.md` lists the tree suites with their
-case names and the exact totals from a real run. There are no benchmarks yet;
-`bench.exe` is a placeholder.
+everything succeeds. `tests/TEST_REPORT.md` records the exact totals from a
+real run. `bench.exe` generates seven deterministic CSV files in
+`bench/results`; see `docs/bench-notes.md` for methodology.
 
 ## Documentation
 
-`docs/level-format.md` is the JSON reference, `docs/level-guide.md` is the
-practical guide to adding levels, `docs/level-interface.md` documents the API
-the level screens will call, and `docs/event-payloads.md` documents event
-fields.
+`docs/LLM-HANDOFF.md` records the team workflow, coding constraints, and
+current handoff status for any new AI assistant. `docs/level-format.md` is the
+JSON reference, `docs/level-guide.md` is the practical guide to adding levels,
+`docs/level-interface.md` documents the API the level screens will call, and
+`docs/event-payloads.md` documents event fields.

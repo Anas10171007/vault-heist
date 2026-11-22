@@ -44,8 +44,9 @@ int CampaignMapScreen::handleEvent(const sf::Event& event, sf::RenderWindow& win
     return ScreenId::NONE;
 }
 
-void CampaignMapScreen::update(float deltaSeconds) {
+int CampaignMapScreen::update(float deltaSeconds) {
     (void)deltaSeconds;
+    return ScreenId::NONE;
 }
 
 void CampaignMapScreen::onShow() {

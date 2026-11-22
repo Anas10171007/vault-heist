@@ -1,0 +1,7 @@
+shape,n,insert_rotations,avg_insert_rotations,delete_rotations,avg_delete_rotations,max_rotations_per_delete
+random,100,75,0.75,51,0.51,4
+random,1000,654,0.654,371,0.371,4
+random,10000,6694,0.6694,3717,0.3717,6
+sorted,100,93,0.93,26,0.26,2
+sorted,1000,990,0.99,246,0.246,4
+sorted,10000,9986,0.9986,2468,0.2468,5

@@ -1,0 +1,7 @@
+shape,n,microseconds,comparisons,swaps
+random,100,30,187,86
+random,1000,147,1899,801
+random,10000,1471,19329,8067
+ordered,100,16,190,96
+ordered,1000,158,1982,992
+ordered,10000,1396,19982,9992

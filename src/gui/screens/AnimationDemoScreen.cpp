@@ -41,8 +41,9 @@ int AnimationDemoScreen::handleEvent(const sf::Event& event, sf::RenderWindow& w
     return StubScreen::handleEvent(event, window);
 }
 
-void AnimationDemoScreen::update(float seconds) {
+int AnimationDemoScreen::update(float seconds) {
     animation.update(seconds);
+    return ScreenId::NONE;
 }
 
 void AnimationDemoScreen::draw(sf::RenderWindow& window) {

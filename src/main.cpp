@@ -14,7 +14,7 @@ int main() {
 
     Theme theme;
     if (!theme.loadFont()) {
-        cout << "Could not load assets/fonts/Inter-Regular.ttf" << endl;
+        cout << "Could not load UI font from assets/fonts/" << endl;
         return 1;
     }
 

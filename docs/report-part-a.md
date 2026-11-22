@@ -164,7 +164,8 @@ range query.
 ## 5. Test strategy and real counts
 
 `tests.exe` prints one `PASS`/`FAIL` line per check. The current run is
-**589 PASS, 0 FAIL**. `tests/TEST_REPORT.md` lists the tree suites by case name:
+**621 PASS, 0 FAIL**. `tests/TEST_REPORT.md` lists the tree suites by case name
+and the heap suites under “Heap results (Arslan)”:
 
 | Suite | Checks | Passed |
 | --- | ---: | ---: |
@@ -174,7 +175,8 @@ range query.
 | Tree validator | 24 | 24 |
 | Tree layout | 20 | 20 |
 | **Tree suites total** | **415** | **415** |
-| **Whole executable** | **589** | **589** |
+| Heap suites (Arslan) | 73 | 73 |
+| **Whole executable** | **621** | **621** |
 
 The strategy has four parts:
 
@@ -215,5 +217,9 @@ same case name.
 
 ## 7. Benchmark analysis
 
-*Placeholder — this section is filled in after the benchmark CSVs exist. No
-timings or throughput numbers are reported in this draft.*
+The reproducible benchmark suite writes seven CSV files under `bench/results`.
+It compares sorted and seeded-random insertion in BST and AVL trees, linear
+Max Heap construction, Heap Sort, and hand-written insertion and selection
+sort baselines. Tree files include final height and AVL rotation counts; heap
+files include comparisons and swaps. Full methodology and reproduction
+instructions are in `docs/bench-notes.md`.

@@ -1,6 +1,10 @@
 #pragma once
+#include <string>
 #include "game/ScoreSystem.h"
 #include "model/heap/MaxHeap.h"
+#include "util/DynArray.h"
+
+using namespace std;
 
 namespace vh {
 
@@ -10,6 +14,7 @@ public:
 
     void load(const DynArray<int>& values);
     EventLog chooseSwap(int first, int second, bool& accepted);
+    bool undo();
     bool isValidSwap(int first, int second) const;
     bool isComplete() const;
     bool isFailed() const;
@@ -17,10 +22,18 @@ public:
     int valueAt(int index) const;
     void copyValues(DynArray<int>& output) const;
     const ScoreSystem& score() const;
+    void applyHint();
 
 private:
+    struct Snapshot {
+        string heapState;
+        ScoreSystem scoreState;
+        bool wasComplete;
+    };
+
     MaxHeap heap;
     ScoreSystem scoring;
+    DynArray<Snapshot> history;
     bool complete;
 };
 

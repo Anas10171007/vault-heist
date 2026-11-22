@@ -11,6 +11,46 @@
       "seed": 4711,
       "data": {"source": "explicit", "values": [90, 72, 84, 31, 95, 79, 77]},
       "rules": {}
+    },
+    {
+      "id": "4.2",
+      "title": "Repair the Security Locks",
+      "mission": "Choose heapify up or heapify down to restore the disturbed Max Heap.",
+      "structure": "maxheap",
+      "task": "heap_repair",
+      "seed": 4722,
+      "data": {"source": "explicit", "values": [20, 90, 84, 31, 72, 79, 77]},
+      "rules": {}
+    },
+    {
+      "id": "4.3",
+      "title": "Crack the Treasure Queue",
+      "mission": "Extract each maximum while preserving the heap after every operation.",
+      "structure": "maxheap",
+      "task": "heap_extract",
+      "seed": 4733,
+      "data": {"source": "explicit", "values": [98, 81, 92, 44, 67, 75, 86]},
+      "rules": {}
+    },
+    {
+      "id": "4.4",
+      "title": "Beat the Alarm",
+      "mission": "Clear the vault with repeated extract-max operations before the alarm fills.",
+      "structure": "maxheap",
+      "task": "heap_race",
+      "seed": 4744,
+      "data": {"source": "explicit", "values": [99, 88, 93, 61, 72, 84, 90, 25, 40]},
+      "rules": {"count": 3}
+    },
+    {
+      "id": "4.5",
+      "title": "Final Vault Sort",
+      "mission": "Run Heap Sort and leave every treasure in ascending order.",
+      "structure": "maxheap",
+      "task": "heap_sort",
+      "seed": 4755,
+      "data": {"source": "explicit", "values": [42, 17, 93, 58, 26, 71, 64, 9]},
+      "rules": {}
     }
   ]
 }

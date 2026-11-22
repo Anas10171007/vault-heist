@@ -1,11 +1,14 @@
 #include "game/act4/HeapBuildLevel.h"
 
+using namespace std;
+
 namespace vh {
 
 HeapBuildLevel::HeapBuildLevel() : scoring(1), complete(false) {}
 
 void HeapBuildLevel::load(const DynArray<int>& values) {
     heap.load(values);
+    history.clear();
     MaxHeap solution(false);
     solution.load(values);
     solution.buildMaxHeap();
@@ -49,6 +52,12 @@ EventLog HeapBuildLevel::chooseSwap(int first, int second, bool& accepted) {
         return EventLog();
     }
 
+    Snapshot snapshot;
+    snapshot.heapState = heap.serialize();
+    snapshot.scoreState = scoring;
+    snapshot.wasComplete = complete;
+    history.push(snapshot);
+
     accepted = true;
     scoring.addStep();
     EventLog events = heap.playerSwap(first, second);
@@ -57,6 +66,15 @@ EventLog HeapBuildLevel::chooseSwap(int first, int second, bool& accepted) {
         scoring.finish();
     }
     return events;
+}
+
+bool HeapBuildLevel::undo() {
+    if (history.empty()) return false;
+    Snapshot snapshot = history.pop();
+    if (!heap.deserialize(snapshot.heapState)) return false;
+    scoring = snapshot.scoreState;
+    complete = snapshot.wasComplete;
+    return true;
 }
 
 bool HeapBuildLevel::isComplete() const { return complete; }
@@ -70,5 +88,7 @@ void HeapBuildLevel::copyValues(DynArray<int>& output) const {
 }
 
 const ScoreSystem& HeapBuildLevel::score() const { return scoring; }
+
+void HeapBuildLevel::applyHint() { scoring.addPenalty(PenaltyKind::HINT); }
 
 }

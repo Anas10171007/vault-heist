@@ -129,6 +129,8 @@ public:
     }
     virtual PlayResult apply(const PlayerAction& action) = 0;
     virtual PlayResult hint() = 0;
+    // Snapshot undo: restore tree + score + progress from before the last apply.
+    virtual bool undo() { return false; }
 
     // Free correct next step, used by Auto, tests and tutorial highlighting.
     virtual PlayerAction nextAction() const = 0;

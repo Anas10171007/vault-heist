@@ -28,6 +28,10 @@ public:
     int selectedIndex() const;
     int hitTest(sf::Vector2f point, sf::Vector2f treeOrigin, float treeWidth,
                 sf::Vector2f arrayOrigin, float arrayWidth) const;
+    // True if point is over sorted cells or the next slot after the active heap.
+    bool hitsSortedDrop(sf::Vector2f point, sf::Vector2f arrayOrigin,
+                        float arrayWidth) const;
+    sf::Vector2f sortedDropCenter(sf::Vector2f arrayOrigin, float arrayWidth) const;
 
 private:
     DynArray<int> initialValues;
@@ -38,6 +42,9 @@ private:
     int swapB;
     float swapProgress;
     int selected;
+    // Last leaf flying into the SORTED slot after extract/seal.
+    int sealIndex;
+    float sealProgress;
 
     sf::Vector2f treePosition(int index, sf::Vector2f origin, float width) const;
     sf::Vector2f arrayPosition(int index, sf::Vector2f origin,

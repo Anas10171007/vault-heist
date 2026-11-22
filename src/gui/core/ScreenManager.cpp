@@ -1,8 +1,14 @@
 #include "gui/core/ScreenManager.h"
+#include "game/SaveManager.h"
 #include "gui/screens/StubScreen.h"
 #include "gui/screens/HeapLevelScreen.h"
-#include "gui/screens/CampaignMapScreen.h"
-#include "gui/screens/LevelPlayScreen.h"
+#include "gui/screens/CampaignScreen.h"
+#include "gui/screens/BriefingScreen.h"
+#include "gui/screens/LevelScreen.h"
+#include "gui/screens/LeaderboardScreen.h"
+#include "gui/screens/ResultScreen.h"
+#include "gui/screens/SandboxScreen.h"
+#include "gui/screens/SettingsScreen.h"
 
 namespace vh {
 
@@ -11,7 +17,10 @@ ScreenManager::ScreenManager(Theme& theme) {
         screens[i] = nullptr;
     }
 
-    StubScreen* menu = new StubScreen(theme, "Vault Heist", "Choose where to enter the living vault");
+    SaveManager::loadProgress(session);
+
+    StubScreen* menu = new StubScreen(theme, "Vault Heist",
+                                      "Breach the living vault. Trees, heaps, one alarm.");
     menu->addButton("Campaign", ScreenId::CAMPAIGN_MAP);
     menu->addButton("Endless", ScreenId::ENDLESS);
     menu->addButton("Sandbox", ScreenId::SANDBOX);
@@ -20,37 +29,19 @@ ScreenManager::ScreenManager(Theme& theme) {
     menu->addButton("Quit", ScreenId::QUIT);
     screens[ScreenId::MENU] = menu;
 
-    LevelPlayScreen* play = new LevelPlayScreen(theme);
-    screens[ScreenId::CAMPAIGN_MAP] = new CampaignMapScreen(theme, play, play->session());
-
-    StubScreen* briefing = new StubScreen(theme, "Level Briefing", "Review the mission before entering");
-    briefing->addButton("Start Level", ScreenId::LEVEL_PLAY);
-    briefing->addButton("Campaign Map", ScreenId::CAMPAIGN_MAP);
-    screens[ScreenId::BRIEFING] = briefing;
-
-    screens[ScreenId::LEVEL_PLAY] = play;
-
-    StubScreen* result = new StubScreen(theme, "Result", "Stars, steps, and penalties will appear here");
-    result->addButton("Retry", ScreenId::LEVEL_PLAY);
-    result->addButton("Campaign Map", ScreenId::CAMPAIGN_MAP);
-    screens[ScreenId::RESULT] = result;
-
-    StubScreen* sandbox = new StubScreen(theme, "Sandbox", "Free-form data structure operations");
-    sandbox->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::SANDBOX] = sandbox;
+    screens[ScreenId::CAMPAIGN_MAP] = new CampaignScreen(theme, session);
+    screens[ScreenId::BRIEFING] = new BriefingScreen(theme, session);
+    screens[ScreenId::LEVEL_PLAY] = new LevelScreen(theme, session);
+    screens[ScreenId::RESULT] = new ResultScreen(theme, session);
+    screens[ScreenId::SANDBOX] = new SandboxScreen(theme);
 
     StubScreen* endless = new StubScreen(theme, "Endless Mode", "Survive an increasing stream of operations");
     endless->addButton("Leaderboard", ScreenId::LEADERBOARD);
     endless->addButton("Main Menu", ScreenId::MENU);
     screens[ScreenId::ENDLESS] = endless;
 
-    StubScreen* leaderboard = new StubScreen(theme, "Leaderboard", "Local high scores will appear here");
-    leaderboard->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::LEADERBOARD] = leaderboard;
-
-    StubScreen* settings = new StubScreen(theme, "Settings", "Display and animation settings");
-    settings->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::SETTINGS] = settings;
+    screens[ScreenId::LEADERBOARD] = new LeaderboardScreen(theme, session);
+    screens[ScreenId::SETTINGS] = new SettingsScreen(theme, session);
 
     activeScreen = ScreenId::MENU;
 }
@@ -67,12 +58,7 @@ void ScreenManager::handleEvent(const sf::Event& event, sf::RenderWindow& window
         return;
     }
 
-    const sf::Event::KeyPressed* keyPress = event.getIf<sf::Event::KeyPressed>();
-    if (keyPress != nullptr && keyPress->code == sf::Keyboard::Key::Escape) {
-        show(activeScreen == ScreenId::LEVEL_PLAY ? ScreenId::CAMPAIGN_MAP : ScreenId::MENU);
-        return;
-    }
-
+    // Esc is handled per-screen (level → campaign, campaign → menu, etc.).
     int requestedScreen = screens[activeScreen]->handleEvent(event, window);
     if (requestedScreen == ScreenId::QUIT) {
         window.close();
@@ -82,7 +68,12 @@ void ScreenManager::handleEvent(const sf::Event& event, sf::RenderWindow& window
 }
 
 void ScreenManager::update(float deltaSeconds) {
-    screens[activeScreen]->update(deltaSeconds);
+    int requestedScreen = screens[activeScreen]->update(deltaSeconds);
+    if (requestedScreen == ScreenId::QUIT) {
+        // Quit is handled from events; ignore here.
+    } else if (requestedScreen != ScreenId::NONE) {
+        show(requestedScreen);
+    }
 }
 
 void ScreenManager::draw(sf::RenderWindow& window) {

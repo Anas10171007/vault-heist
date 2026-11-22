@@ -13,7 +13,7 @@ public:
     StubScreen(Theme& theme, const string& title, const string& description);
     void addButton(const string& label, int targetScreen);
     int handleEvent(const sf::Event& event, sf::RenderWindow& window) override;
-    void update(float deltaSeconds) override;
+    int update(float deltaSeconds) override;
     void draw(sf::RenderWindow& window) override;
 
 private:

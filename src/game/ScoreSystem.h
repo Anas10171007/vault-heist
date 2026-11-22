@@ -31,12 +31,15 @@ public:
     void addBonus(int points);
     void finish();
     void reset(int newOptimalSteps);
+    // Race / special levels: shrink capacity after reset (keeps current alarm).
+    void setAlarmCapacity(int newCapacity);
 
     bool isFailed() const;
     bool isFinished() const;
     int stars() const;
     int score() const;
     int steps() const;
+    int optimalSteps() const;
     int alarm() const;
     int alarmCapacity() const;
     int penalties() const;

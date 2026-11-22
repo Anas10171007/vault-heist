@@ -20,11 +20,18 @@ Each check prints one `PASS <case>` or `FAIL <case>` line. The run ends with
 | Scope | Checks | Passed | Failed |
 | --- | ---: | ---: | ---: |
 | Tree suites (BinaryTree, BST, AVL, validator, layout) | 415 | 415 | 0 |
-| Whole executable, all suites | 589 | 589 | 0 |
+| Heap suites (model, validator, view, Act 4 levels) | 73 | 73 | 0 |
+| Whole executable, all suites | 621 | 621 | 0 |
 
 The non-tree suites (utilities, animation, levels, score, heap model, heap
-validator, heap view, heap build level) are included in the whole-executable
+validator, heap view, all five Act 4 levels, and heap snapshot undo) are included in the whole-executable
 row.
+
+The current Act 4 coverage includes empty, singleton, duplicate, negative,
+already-valid, reverse-sorted and random builds, repeated-extraction, full-sort
+against a hand-written reference sort, serialization round-trip, invalid
+snapshot, extract-then-heapify gameplay, level scoring, and undo cases. The
+final line of the captured run is `all passed`.
 
 ## Tree suites
 
@@ -460,7 +467,92 @@ row.
 
 ## Heap results (Arslan)
 
-<!-- Arslan: append the heap suite results here. -->
+73 checks, 73 passed, 0 failed. Captured from `tests.exe` on 21 November 2026.
+
+### MaxHeap model
+
+- `empty heap builds safely`
+- `single value is already a heap`
+- `buildMaxHeap repairs an ordinary array`
+- `HEAP_BUILD records last parent and heap size`
+- `build swaps record the BUILD reason`
+- `build counts comparisons and swaps`
+- `building an existing heap does not swap values`
+- `duplicates are allowed in a Max Heap`
+- `buildMaxHeap repairs a reverse-sorted array`
+- `buildMaxHeap repairs a random permutation`
+- `insert uses heapify up`
+- `heap insertion reuses INSERT with index and value`
+- `insert records the old and new heap sizes`
+- `extractMax moves the maximum into the sorted region`
+- `extraction records HEAP_SIZE_CHANGE using oldValue and newValue`
+- `extraction swap records its indices and reason`
+- `insert is rejected while a sorted region exists`
+- `repeated extraction returns values from largest to smallest`
+- `Heap Sort produces ascending order and marks the whole array sorted`
+- `Heap Sort ends with completion and done events`
+- `Heap Sort matches reference sort on an empty array`
+- `Heap Sort matches reference sort on a singleton`
+- `Heap Sort matches reference sort with duplicates`
+- `Heap Sort matches reference sort with negatives`
+- `Heap Sort matches reference sort on a sorted array`
+- `Heap Sort matches reference sort on a reverse-sorted array`
+- `Heap Sort matches reference sort on a random array`
+- `recording off keeps heap logic working without events`
+- `heap snapshot restores values and active boundary for undo`
+- `invalid heap snapshot is rejected without changing state`
+- `non-integer heap snapshot token is rejected`
+- `negative heap size snapshot is rejected`
+- `empty values with positive heap size are rejected`
+- `empty heap snapshot restores cleanly`
+- `extractMaxNoHeapify moves the max without restoring the heap`
+- `repairDown restores the heap after extractMaxNoHeapify`
+
+### Heap validator
+
+- `validator accepts a valid active heap and sorted region`
+- `validator catches a larger left child`
+- `validator catches a larger right child`
+- `validator catches a heap size outside the array`
+- `validator catches mismatched heap and sorted boundaries`
+- `validator catches an unsorted tail`
+- `validator catches a sorted value smaller than the active maximum`
+- `validator never changes the array`
+- `validator accepts a built MaxHeap object`
+- `validator accepts a partially extracted heap`
+- `validator accepts a completed Heap Sort`
+
+### Heap view
+
+- `heap view loads one shared visual state`
+- `heap view animates a swap before changing values`
+- `heap view completes a swap once`
+- `heap view flags both ends of a broken parent child pair`
+- `heap view reset restores the starting snapshot`
+- `heap view follows insertion events`
+
+### Act 4 levels
+
+- `heap build level starts with a broken raw heap`
+- `invalid heap swap adds one alarm penalty`
+- `valid heap swap accepts parent child selection in either order`
+- `valid player swap changes the model and records its reason`
+- `required swaps complete the heap build level`
+- `heap build snapshot does not change the model`
+- `repair level recognizes both valid directions on a broken edge`
+- `wrong repair direction adds one alarm penalty`
+- `heapify down repairs the disturbed root and completes the level`
+- `valid heapify up may improve the heap without completing it`
+- `a longer valid repair route is allowed but costs an extra step`
+- `extract leaves the heap needing a restore`
+- `extract counts as one player step`
+- `heapify restores the Max Heap after extract`
+- `undo restores heap, score, and awaiting-heapify state`
+- `second undo restores the pre-extract snapshot`
+- `extract level completes after every maximum is removed and restored`
+- `race level completes after the configured extraction count`
+- `Heap Sort finale completes by manual extract and heapify steps`
+- `heapify before extract is an invalid heap action`
 
 _This section is intentionally empty._
 

@@ -3,9 +3,16 @@
 bool loadDefaultFont(sf::Font& font) {
     const char* prefixes[4] = {"", "../", "../../", "../../../"};
     for (int i = 0; i < 4; i++) {
-        std::string path = std::string(prefixes[i]) + "assets/fonts/Inter-Regular.ttf";
-        std::ifstream probe(path, std::ios::binary);
-        if (probe.good() && font.openFromFile(path)) return true;
+        const char* names[3] = {
+            "assets/fonts/Bahnschrift.ttf",
+            "assets/fonts/CascadiaCode.ttf",
+            "assets/fonts/Inter-Regular.ttf",
+        };
+        for (int n = 0; n < 3; n++) {
+            std::string path = std::string(prefixes[i]) + names[n];
+            std::ifstream probe(path, std::ios::binary);
+            if (probe.good() && font.openFromFile(path)) return true;
+        }
     }
     return false;
 }

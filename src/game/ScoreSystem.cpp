@@ -18,6 +18,12 @@ void ScoreSystem::reset(int newOptimalSteps) {
     finished = false;
 }
 
+void ScoreSystem::setAlarmCapacity(int newCapacity) {
+    if (newCapacity < 1) newCapacity = 1;
+    capacity = newCapacity;
+    if (alarmSteps > capacity) alarmSteps = capacity;
+}
+
 bool ScoreSystem::canChange() const {
     return !finished && !isFailed();
 }
@@ -85,6 +91,10 @@ int ScoreSystem::score() const {
 
 int ScoreSystem::steps() const {
     return stepCount;
+}
+
+int ScoreSystem::optimalSteps() const {
+    return optimalStepCount;
 }
 
 int ScoreSystem::alarm() const {

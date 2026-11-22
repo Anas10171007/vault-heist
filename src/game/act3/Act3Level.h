@@ -13,6 +13,7 @@ public:
     void reset() override;
     PlayResult apply(const PlayerAction& action) override;
     PlayResult hint() override;
+    bool undo() override;
     LevelSnapshot captureSnapshot() const override;
     void restoreSnapshot(const LevelSnapshot& snapshot) override;
     PlayerAction nextAction() const override;
@@ -24,15 +25,15 @@ public:
     const LevelDef& definition() const override;
 
 private:
-    void restoreModelTree(const TreeSnapshot& snapshot) override;
-    void restoreScore(const ScoreSnapshot& snapshot) override;
-
     struct Repair {
         bool found = false;
         int nodeId = 0;
         int pivotId = 0;
         int caseType = 0;
     };
+
+    void restoreModelTree(const TreeSnapshot& snapshot) override;
+    void restoreScore(const ScoreSnapshot& snapshot) override;
 
     void buildInitialTree();
     void computePlan();
@@ -44,12 +45,31 @@ private:
     PlayResult finish(const char* message, EventLog& events);
     PlayResult reject(const char* message, bool rotation);
     PlayResult accept(const char* message, EventLog& events);
+    void pushSnapshot();
+
+    struct Snapshot {
+        std::string treeState;
+        ScoreSystem scoreState;
+        DynArray<int> expectedState;
+        DynArray<int> insertsState;
+        Repair repairState;
+        int progress = 0;
+        int k = 0;
+        int expectedSize = 0;
+        int stage = 0;
+        int stages = 1;
+        int phase = 0;
+        int insertIndex = 0;
+        int optimal = 1;
+        bool complete = false;
+    };
 
     LevelDef definitionData;
     AVLTree treeModel;
     ScoreSystem scoring;
     DynArray<int> expected;
     DynArray<int> inserts;
+    DynArray<Snapshot> history;
     Repair repair;
     int progress = 0;
     int k = 0;

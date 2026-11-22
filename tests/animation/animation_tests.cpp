@@ -69,6 +69,12 @@ int runAnimationTests() {
     player.restart();
     player.stepBackward();
     check(player.completedCount() == 0 && probe.finished == 0, "restart clears visuals and backward stops at start");
+    player.finishInstantly();
+    player.seekTo(2);
+    check(player.completedCount() == 2 && probe.finished == 2 && !player.isPlaying(),
+          "scrubber seek rebuilds a visual prefix without changing the model");
+    player.seekTo(99);
+    check(player.completedCount() == 5, "scrubber seek clamps to the end");
 
     EventLog input;
     for (int i = 0; i < 5; i++) input.append(Event(EventType::VISIT, i));
