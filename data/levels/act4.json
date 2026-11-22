@@ -9,7 +9,7 @@
       "structure": "maxheap",
       "task": "heap_build",
       "seed": 4711,
-      "data": {"source": "explicit", "values": [90, 72, 84, 31, 95, 79, 77]},
+      "data": {"source": "generate", "shape": "sorted", "size": 11, "min": 10, "max": 99},
       "rules": {}
     },
     {
@@ -19,7 +19,7 @@
       "structure": "maxheap",
       "task": "heap_repair",
       "seed": 4722,
-      "data": {"source": "explicit", "values": [20, 90, 84, 31, 72, 79, 77]},
+      "data": {"source": "generate", "shape": "disturbed", "size": 11, "min": 10, "max": 99, "disturb": 4},
       "rules": {}
     },
     {
@@ -29,7 +29,7 @@
       "structure": "maxheap",
       "task": "heap_extract",
       "seed": 4733,
-      "data": {"source": "explicit", "values": [98, 81, 92, 44, 67, 75, 86]},
+      "data": {"source": "generate", "shape": "heap", "size": 11, "min": 10, "max": 99},
       "rules": {}
     },
     {
@@ -39,7 +39,7 @@
       "structure": "maxheap",
       "task": "heap_race",
       "seed": 4744,
-      "data": {"source": "explicit", "values": [99, 88, 93, 61, 72, 84, 90, 25, 40]},
+      "data": {"source": "generate", "shape": "heap", "size": 13, "min": 5, "max": 99},
       "rules": {"count": 3}
     },
     {
@@ -49,7 +49,7 @@
       "structure": "maxheap",
       "task": "heap_sort",
       "seed": 4755,
-      "data": {"source": "explicit", "values": [42, 17, 93, 58, 26, 71, 64, 9]},
+      "data": {"source": "generate", "shape": "duplicates", "size": 12, "min": 1, "max": 40},
       "rules": {}
     }
   ]
