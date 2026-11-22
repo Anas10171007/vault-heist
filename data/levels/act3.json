@@ -19,7 +19,7 @@
       "structure": "avl",
       "task": "avl_rotate_single",
       "seed": 3102,
-      "data": {"source": "explicit", "tree": "100 50 30 20 10 # # # # 70 # 80 # 90 # # # 150 130 120 110 # # # # 170 # 180 # 190 # # #"},
+      "data": {"source": "explicit", "tree": "100 50 30 20 10 # # # # 70 # 80 # 90 # # 150 130 120 110 # # # # 170 # 180 # 190 # #"},
       "rules": {"rotation": "LL RR"}
     },
     {

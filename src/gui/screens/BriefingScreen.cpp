@@ -1,6 +1,7 @@
 #include "gui/screens/BriefingScreen.h"
 #include "gui/core/Renderer.h"
 #include "gui/core/ScreenId.h"
+#include "gui/screens/TreeMissionScreen.h"
 
 namespace vh {
 BriefingScreen::BriefingScreen(Theme& sharedTheme, GameSession& sharedSession)
@@ -42,7 +43,11 @@ void BriefingScreen::draw(sf::RenderWindow& window) {
     rule.setFillColor(Palette::VISITED);
     window.draw(rule);
 
-    renderer.drawText(level->mission, {550.f, 220.f}, 16, Palette::MUTED, true);
+    string objective = TreeMissionScreen::objectiveFor(*level);
+    renderer.drawText(objective, {550.f, 214.f}, 16, Palette::TEXT, true);
+    if (objective != level->mission) {
+        renderer.drawText(level->mission, {550.f, 246.f}, 13, Palette::MUTED, true);
+    }
     renderer.drawText("Structure   " + level->structure, {550.f, 290.f}, 16, Palette::TEXT, true);
     renderer.drawText("Operation   " + level->task, {550.f, 322.f}, 16, Palette::TEXT, true);
 

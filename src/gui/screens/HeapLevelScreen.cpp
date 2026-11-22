@@ -1,4 +1,5 @@
 #include "gui/screens/HeapLevelScreen.h"
+#include "game/LevelDataBuilder.h"
 #include "game/LevelManager.h"
 #include "gui/core/Renderer.h"
 #include "gui/core/ScreenId.h"
@@ -127,14 +128,18 @@ void HeapLevelScreen::resetLevel() {
     animation.load(empty);
     if (!levelLoaded) return;
 
+    // Seeded generate (or explicit JSON values) — same seed ⇒ same array every run.
+    DynArray<int> values;
+    LevelDataBuilder::buildValues(level, values);
+
     if (isBuildLevel()) {
-        buildLogic.load(level.data.values);
+        buildLogic.load(values);
         message = "Select a smaller parent, then its largest child.";
     } else if (isRepairLevel()) {
-        repairLogic.load(level.data.values);
+        repairLogic.load(values);
         message = "Select a BAD node, then Heapify Up or Heapify Down.";
     } else {
-        operationLogic.load(level.data.values, level.task, level.rules.count);
+        operationLogic.load(values, level.task, level.rules.count);
         if (level.task == "heap_race") {
             message = "Race: tighter alarm. Extract " + to_string(level.rules.count) +
                       " maxima before it fills.";

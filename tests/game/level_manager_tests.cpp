@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
+#include "game/LevelDataBuilder.h"
 #include "game/LevelManager.h"
+#include "model/heap/MaxHeap.h"
 
 using namespace std;
 using namespace vh;
@@ -25,14 +27,44 @@ int runLevelManagerTests() {
           "BST level keeps values and target");
 
     const LevelDef* heap = manager.load("4.1");
-    check(heap != nullptr && heap->task == "heap_build" && heap->data.values[4] == 95,
-          "Act 4 sample is found by id");
+    check(heap != nullptr && heap->task == "heap_build" && heap->data.source == "generate" &&
+              heap->data.shape == "sorted" && heap->data.size == 11,
+          "Act 4 build level uses seeded ascending generate");
     const LevelDef* repair = manager.load("4.2");
-    check(repair != nullptr && repair->task == "heap_repair" && repair->data.values[0] == 20,
-          "Act 4 repair level keeps its disturbed root");
+    check(repair != nullptr && repair->task == "heap_repair" &&
+              repair->data.shape == "disturbed" && repair->data.disturb == 4,
+          "Act 4 repair level uses disturbed generate");
     const LevelDef* sort = manager.load("4.5");
-    check(sort != nullptr && sort->task == "heap_sort" && sort->data.values.size() == 8,
-          "Act 4 finale loads its seeded Heap Sort input");
+    check(sort != nullptr && sort->task == "heap_sort" && sort->data.shape == "duplicates" &&
+              sort->data.size == 12,
+          "Act 4 finale uses seeded duplicate-heavy generate");
+
+    DynArray<int> built;
+    LevelDataBuilder::buildValues(*heap, built);
+    check(built.size() == 11, "generated 4.1 has the requested size");
+    MaxHeap ascendingProbe(false);
+    ascendingProbe.load(built);
+    check(!ascendingProbe.isMaxHeap(), "ascending 4.1 is not already a Max Heap");
+    DynArray<int> builtAgain;
+    LevelDataBuilder::buildValues(*heap, builtAgain);
+    bool sameSeed = built.size() == builtAgain.size();
+    for (int i = 0; sameSeed && i < built.size(); i++) {
+        if (built[i] != builtAgain[i]) sameSeed = false;
+    }
+    check(sameSeed, "same seed regenerates the same Act 4 array");
+
+    DynArray<int> validHeap;
+    LevelDataBuilder::buildValues(*manager.load("4.3"), validHeap);
+    MaxHeap checkHeap(false);
+    checkHeap.load(validHeap);
+    check(checkHeap.isMaxHeap(), "shape heap starts as a valid Max Heap");
+
+    DynArray<int> broken;
+    LevelDataBuilder::buildValues(*repair, broken);
+    MaxHeap brokenHeap(false);
+    brokenHeap.load(broken);
+    check(!brokenHeap.isMaxHeap(), "shape disturbed is not a Max Heap");
+
     check(manager.load("9.9") == nullptr, "unknown level id returns null");
 
     LevelManager futureFields;

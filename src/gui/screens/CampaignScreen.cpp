@@ -25,10 +25,9 @@ sf::FloatRect CampaignScreen::levelBounds(int index) const {
     return {{col, row}, {236.f, 44.f}};
 }
 
-bool CampaignScreen::isUnlocked(int index) const {
-    if (index <= 0) return true;
-    const string& previousId = levels.at(index - 1).id;
-    return session.bestStarsFor(previousId) > 0;
+bool CampaignScreen::isUnlocked(int /*index*/) const {
+    // Temporary: open every mission so Acts 1–4 can be UI-tested freely.
+    return true;
 }
 
 int CampaignScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
@@ -55,7 +54,7 @@ void CampaignScreen::draw(sf::RenderWindow& window) {
     theme.drawPanel(window, {{40.f, 28.f}, {1020.f, 640.f}});
 
     renderer.drawText("CAMPAIGN", {550.f, 52.f}, 34, Palette::BRASS, true);
-    renderer.drawText("Clear a mission to unlock the next  ·  Backspace: menu",
+    renderer.drawText("All levels unlocked for testing  ·  Esc / Backspace: menu",
                       {550.f, 92.f}, 13, Palette::MUTED, true);
 
     if (!loaded) {

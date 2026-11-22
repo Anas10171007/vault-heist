@@ -4,7 +4,7 @@
 #include "gui/core/Screen.h"
 #include "gui/core/Theme.h"
 #include "gui/widgets/HeapView.h"
-#include "gui/widgets/ReplayScrubber.h"
+#include "model/EventLog.h"
 #include "model/heap/MaxHeap.h"
 #include "model/tree/AVLTree.h"
 #include "model/tree/BST.h"
@@ -26,18 +26,19 @@ private:
     Theme& theme;
     int structure; // 0 Binary, 1 BST, 2 AVL, 3 MaxHeap
     int inputValue;
-    int rangeHi;
     int selectedNodeId;
     string message;
+    EventLog searchLog;
+    int searchStep;
+    float searchClock;
     BinaryTree binary;
     BST bst;
     AVLTree avl;
     MaxHeap heap;
     HeapView heapView;
-    AnimationController animation;
-    ReplayScrubber scrubber;
 
     sf::FloatRect structureButton() const;
+    sf::FloatRect valueField() const;
     sf::FloatRect insertButton() const;
     sf::FloatRect removeButton() const;
     sf::FloatRect searchButton() const;
@@ -60,7 +61,9 @@ private:
     void doClear();
     void doBuild();
     void refreshHeapView();
+    void clearSearch();
     void drawTree(Renderer& renderer);
+    int searchState(int nodeId) const;
 };
 
 }

@@ -29,6 +29,8 @@ ScreenManager::ScreenManager(Theme& theme) {
     menu->addButton("Quit", ScreenId::QUIT);
     screens[ScreenId::MENU] = menu;
 
+    // Campaign shell is ours. Acts 1–3 call Anas's LevelPlay through TreeMissionScreen.
+    // Act 4 stays on HeapLevelScreen.
     screens[ScreenId::CAMPAIGN_MAP] = new CampaignScreen(theme, session);
     screens[ScreenId::BRIEFING] = new BriefingScreen(theme, session);
     screens[ScreenId::LEVEL_PLAY] = new LevelScreen(theme, session);
