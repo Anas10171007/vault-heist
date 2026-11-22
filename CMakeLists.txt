@@ -36,6 +36,9 @@ add_custom_command(TARGET vaultheist POST_BUILD
 add_executable(tests ${TEST_SOURCES})
 target_sources(tests PRIVATE
     src/gui/core/Renderer.cpp
+    src/gui/core/Theme.cpp
+    src/gui/screens/EndlessScreen.cpp
+    src/gui/tree/TreeAnimationView.cpp
     src/gui/widgets/HeapView.cpp)
 target_link_libraries(tests PRIVATE gamecore SFML::Graphics)
 add_executable(bench ${BENCH_SOURCES})

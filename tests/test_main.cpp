@@ -24,6 +24,7 @@ int runHeapBuildLevelTests();
 int runHeapRepairLevelTests();
 int runHeapOperationLevelTests();
 int runSaveLeaderboardTests();
+int runEndlessScreenTests();
 int main() {
     using namespace vh;
     int failed = 0;
@@ -118,6 +119,7 @@ int main() {
     failed += runHeapRepairLevelTests();
     failed += runHeapOperationLevelTests();
     failed += runSaveLeaderboardTests();
+    failed += runEndlessScreenTests();
     std::cout << (failed == 0 ? "all passed" : "some failed") << std::endl;
     return failed;
 }

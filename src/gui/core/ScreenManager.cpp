@@ -2,6 +2,7 @@
 #include "game/SaveManager.h"
 #include "gui/screens/StubScreen.h"
 #include "gui/screens/HeapLevelScreen.h"
+#include "gui/screens/EndlessScreen.h"
 #include "gui/screens/CampaignScreen.h"
 #include "gui/screens/BriefingScreen.h"
 #include "gui/screens/LevelScreen.h"
@@ -37,10 +38,7 @@ ScreenManager::ScreenManager(Theme& theme) {
     screens[ScreenId::RESULT] = new ResultScreen(theme, session);
     screens[ScreenId::SANDBOX] = new SandboxScreen(theme);
 
-    StubScreen* endless = new StubScreen(theme, "Endless Mode", "Survive an increasing stream of operations");
-    endless->addButton("Leaderboard", ScreenId::LEADERBOARD);
-    endless->addButton("Main Menu", ScreenId::MENU);
-    screens[ScreenId::ENDLESS] = endless;
+    screens[ScreenId::ENDLESS] = new EndlessScreen(theme);
 
     screens[ScreenId::LEADERBOARD] = new LeaderboardScreen(theme, session);
     screens[ScreenId::SETTINGS] = new SettingsScreen(theme, session);
