@@ -1,6 +1,6 @@
 ﻿# Vault Heist test report
 
-Generated from the real `tests.exe` output on 21 November 2026.
+Generated from the real `tests.exe` output on 22 November 2026.
 
 ## How to run
 
@@ -19,9 +19,7 @@ Each check prints one `PASS <case>` or `FAIL <case>` line. The run ends with
 
 | Scope | Checks | Passed | Failed |
 | --- | ---: | ---: | ---: |
-| Tree suites (BinaryTree, BST, AVL, validator, layout) | 415 | 415 | 0 |
-| Heap suites (model, validator, view, Act 4 levels) | 73 | 73 | 0 |
-| Whole executable, all suites | 621 | 621 | 0 |
+| Whole executable, all suites | 663 | 663 | 0 |
 
 The non-tree suites (utilities, animation, levels, score, heap model, heap
 validator, heap view, all five Act 4 levels, and heap snapshot undo) are included in the whole-executable

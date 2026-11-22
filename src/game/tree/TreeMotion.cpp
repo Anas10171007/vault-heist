@@ -40,8 +40,12 @@ TreeMotion TreeMotion::simple(const TreeLayout& before, const EventLog& source,
     TreeMotion motion;
     motion.setBase(before);
     motion.setFinal(after);
+    // Keep the pre-op layout until the first position-changing event, then land
+    // on the final layout. (This helper is a coarse tween — not a full replay.)
+    bool moved = false;
     for (int i = 0; i < source.size(); i++) {
-        motion.addEvent(source.at(i), after);
+        if (movesPositions(source.at(i).type)) moved = true;
+        motion.addEvent(source.at(i), moved ? after : before);
     }
     return motion;
 }

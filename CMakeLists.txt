@@ -43,33 +43,3 @@ target_sources(tests PRIVATE
 target_link_libraries(tests PRIVATE gamecore SFML::Graphics)
 add_executable(bench ${BENCH_SOURCES})
 target_link_libraries(bench PRIVATE model)
-set(RENDERDEMO_SOURCES
-    src/gui/core/Camera.cpp
-    src/gui/core/Renderer.cpp)
-add_executable(renderdemo tools/render_demo.cpp ${RENDERDEMO_SOURCES})
-target_include_directories(renderdemo PRIVATE src)
-target_link_libraries(renderdemo PRIVATE model SFML::Graphics)
-add_executable(heapviewdemo
-    tools/heap_view_demo.cpp
-    src/gui/core/Renderer.cpp
-    src/gui/widgets/HeapView.cpp)
-target_include_directories(heapviewdemo PRIVATE src)
-target_link_libraries(heapviewdemo PRIVATE model SFML::Graphics)
-add_executable(treeanimdemo
-    tools/tree_anim_demo.cpp
-    src/gui/core/Renderer.cpp
-    src/gui/tree/TreeAnimationView.cpp)
-target_include_directories(treeanimdemo PRIVATE src)
-target_link_libraries(treeanimdemo PRIVATE gamecore SFML::Graphics)
-add_executable(levelsmoke
-    tools/level_smoke.cpp
-    src/gui/core/Camera.cpp
-    src/gui/core/Renderer.cpp
-    src/gui/core/Theme.cpp
-    src/gui/screens/CampaignMapScreen.cpp
-    src/gui/screens/LevelPlayScreen.cpp
-    src/gui/screens/SessionProgress.cpp
-    src/gui/tree/TreeAnimationView.cpp
-    src/gui/widgets/AlarmMeter.cpp)
-target_include_directories(levelsmoke PRIVATE src)
-target_link_libraries(levelsmoke PRIVATE gamecore SFML::Graphics)
