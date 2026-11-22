@@ -1,5 +1,6 @@
 #include "gui/screens/EndlessScreen.h"
 
+#include "game/Leaderboard.h"
 #include "gui/core/Renderer.h"
 #include "gui/core/ScreenId.h"
 #include "model/tree/BinaryTree.h"
@@ -31,12 +32,13 @@ void EndlessScreen::onShow() {
     ops = 0;
     typedValue = 0;
     ended = false;
+    postedScore = false;
     lastScore = 0;
+    pendingHas = false;
     nextOpTimer = delay();
 }
 
 float EndlessScreen::delay() const {
-    // The stream gets denser with time: each interval drops by 30ms.
     float interval = 1.6f - 0.03f * static_cast<float>(elapsed);
     if (interval < 0.5f) interval = 0.5f;
     return interval;
@@ -65,6 +67,21 @@ bool EndlessScreen::isValid() const {
     return TreeValidator::validateTree(avl).ok();
 }
 
+void EndlessScreen::finishRun() {
+    if (ended) return;
+    ended = true;
+    pendingHas = false;
+    lastScore = static_cast<int>(elapsed + 0.5f);
+    scores.push(lastScore);
+    if (!postedScore) {
+        Leaderboard board;
+        board.load();
+        board.addScore("Endless", lastScore);
+        board.save();
+        postedScore = true;
+    }
+}
+
 void EndlessScreen::applyPending() {
     if (!pendingHas) return;
     pendingHas = false;
@@ -76,11 +93,7 @@ void EndlessScreen::applyPending() {
     }
     ops++;
     refreshView();
-    if (!isValid() || ops >= MAX_OPS) {
-        ended = true;
-        lastScore = static_cast<int>(elapsed + 0.5f);
-        scores.push(lastScore);
-    }
+    if (!isValid() || ops >= MAX_OPS) finishRun();
 }
 
 void EndlessScreen::refreshView() {
@@ -89,14 +102,9 @@ void EndlessScreen::refreshView() {
 }
 
 int EndlessScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window) {
-    const auto* click = event.getIf<sf::Event::MouseButtonPressed>();
-    if (ended && click != nullptr && click->button == sf::Mouse::Button::Left) {
-        sf::Vector2f point = window.mapPixelToCoords(click->position);
-        if (contains(menuButton(), point)) return ScreenId::MENU;
-        if (contains(restartButton(), point)) return ScreenId::ENDLESS;
-    }
-
-    if (const auto* key = event.getIf<sf::Event::KeyPressed>()) {
+    const auto* key = event.getIf<sf::Event::KeyPressed>();
+    if (key != nullptr) {
+        if (key->code == sf::Keyboard::Key::Escape && ended) return ScreenId::MENU;
         if (ended) return ScreenId::NONE;
         if (key->code >= sf::Keyboard::Key::Num0 && key->code <= sf::Keyboard::Key::Num9) {
             typedValue = typedValue * 10 + static_cast<int>(key->code) -
@@ -105,10 +113,10 @@ int EndlessScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window)
             return ScreenId::NONE;
         }
         if (key->code == sf::Keyboard::Key::Enter) {
-            // Player repairs: type a value and press Enter, it is inserted.
             if (typedValue >= 20) {
                 avl.insert(typedValue);
                 refreshView();
+                if (!isValid()) finishRun();
             }
             typedValue = 0;
             return ScreenId::NONE;
@@ -117,7 +125,16 @@ int EndlessScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window)
             typedValue /= 10;
             return ScreenId::NONE;
         }
+        return ScreenId::NONE;
     }
+
+    if (!ended) return ScreenId::NONE;
+
+    const auto* click = event.getIf<sf::Event::MouseButtonPressed>();
+    if (click == nullptr || click->button != sf::Mouse::Button::Left) return ScreenId::NONE;
+    sf::Vector2f point = window.mapPixelToCoords(click->position);
+    if (contains(menuButton(), point)) return ScreenId::MENU;
+    if (contains(restartButton(), point)) return ScreenId::ENDLESS;
     return ScreenId::NONE;
 }
 
@@ -140,21 +157,25 @@ void EndlessScreen::draw(sf::RenderWindow& window) {
     renderer.drawText("ENDLESS MODE", {550.f, 130.f}, 30, Palette::TARGET, true);
     renderer.drawText("Mixed inserts and deletes; the tree must stay valid",
                       {550.f, 170.f}, 15, Palette::MUTED, true);
-    renderer.drawText("SURVIVAL " + std::to_string(static_cast<int>(elapsed + 0.5f)) +
-                          "s   OPS " + std::to_string(ops) + "   [Enter: insert typed value]",
-                      {550.f, 620.f}, 16, Palette::TEXT, true);
+
+    if (!ended) {
+        string typed = typedValue == 0 ? "-" : to_string(typedValue);
+        renderer.drawText("SURVIVAL " + to_string(static_cast<int>(elapsed + 0.5f)) +
+                              "s   OPS " + to_string(ops) + "   TYPE " + typed +
+                              "  [Enter inserts]",
+                          {550.f, 660.f}, 16, Palette::TEXT, true);
+        return;
+    }
+
+    renderer.drawText("RUN OVER", {550.f, 360.f}, 30, Palette::TARGET, true);
+    renderer.drawText("SURVIVAL " + to_string(lastScore) + "s   OPS " + to_string(ops),
+                      {550.f, 410.f}, 20, Palette::TEXT, true);
+    renderer.drawText("Score saved to the local leaderboard as Endless.",
+                      {550.f, 450.f}, 14, Palette::MUTED, true);
 
     sf::FloatRect menu = menuButton();
     sf::FloatRect restart = restartButton();
-    if (ended) {
-        renderer.drawText("RUN OVER", {550.f, 380.f}, 30, Palette::TARGET, true);
-        renderer.drawText("SURVIVAL " + std::to_string(lastScore) + "s   OPS " +
-                              std::to_string(ops),
-                          {550.f, 430.f}, 20, Palette::TEXT, true);
-        renderer.drawText("Your score is in the Endless leaderboard stub.",
-                          {550.f, 470.f}, 14, Palette::MUTED, true);
-    }
-    theme.drawButton(window, theme.getFont(), menu, "Main Menu", ButtonKind::SECONDARY,
+    theme.drawButton(window, theme.getFont(), menu, "Main Menu", ButtonKind::PRIMARY,
                      theme.hovered(window, menu));
     theme.drawButton(window, theme.getFont(), restart, "Try Endless Again",
                      ButtonKind::SECONDARY, theme.hovered(window, restart));
@@ -164,7 +185,7 @@ bool EndlessScreen::contains(sf::FloatRect bounds, sf::Vector2f point) {
     return bounds.contains(point);
 }
 
-sf::FloatRect EndlessScreen::menuButton() { return {{375.f, 585.f}, {350.f, 44.f}}; }
-sf::FloatRect EndlessScreen::restartButton() { return {{375.f, 645.f}, {350.f, 44.f}}; }
+sf::FloatRect EndlessScreen::menuButton() { return {{375.f, 520.f}, {350.f, 44.f}}; }
+sf::FloatRect EndlessScreen::restartButton() { return {{375.f, 580.f}, {350.f, 44.f}}; }
 
 }

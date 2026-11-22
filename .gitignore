@@ -3,9 +3,22 @@ cmake-build-*/
 .vs/
 .vscode/
 .idea/
+.codex/
 *.exe
 *.o
 *.obj
 *.a
 *.dll
 *.zip
+
+# Local play state (regenerated at runtime)
+data/save/progress.txt
+data/save/leaderboard.txt
+**/data/save/progress.txt
+**/data/save/leaderboard.txt
+
+# Experimental / agent-only assets (not part of the brief)
+minecraft-ui-assets/
+assets/mc-ui/
+agent-transcripts/
+*.canvas.tsx

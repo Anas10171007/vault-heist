@@ -21,8 +21,7 @@ public:
     void draw(sf::RenderWindow& window) override;
     void onShow() override;
 
-    // Stub leaderboard (B11 owns the real one). It lives on the screen object
-    // so the screen manager keeps it for the whole session; no global state.
+    // Session-local scores kept for tests; durable scores go through Leaderboard.
     const DynArray<int>& leaderboard() const { return scores; }
     bool isEnded() const { return ended; }
 
@@ -33,10 +32,10 @@ private:
     };
 
     void refreshView();
-    // Rate ramps up: the interval shortens as the run gets older.
     float delay() const;
     void generateOp();
     void applyPending();
+    void finishRun();
     bool isValid() const;
     static bool contains(sf::FloatRect bounds, sf::Vector2f point);
     static sf::FloatRect menuButton();
@@ -53,6 +52,7 @@ private:
     int ops = 0;
     int typedValue = 0;
     bool ended = false;
+    bool postedScore = false;
     int lastScore = 0;
     DynArray<int> scores;
 };

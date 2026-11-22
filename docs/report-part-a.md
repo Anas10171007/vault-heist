@@ -1,8 +1,8 @@
 # Part A report draft (P3.4a)
 
-*Draft for Anas to turn into the PDF. Every statement below was checked against
-the current source. All numbers come from `tests/TEST_REPORT.md`; no benchmark
-numbers are included yet.*
+*Draft for the 8–12 page PDF. Architecture and APIs match the current source.
+Unit-test claims come from `tests/TEST_REPORT.md`. Benchmark numbers below were
+regenerated with `.\build\bin\bench.exe` into `bench/results/` (this machine).*
 
 ## 1. System architecture
 
@@ -215,11 +215,63 @@ event with the pivot in `idA`, the rising node in `idB`, the pre-rotation parent
 id in `key` and the case in `extra`; a double rotation emits two events with the
 same case name.
 
-## 7. Benchmark analysis
+## 7. Benchmark analysis (Section 10)
 
-The reproducible benchmark suite writes seven CSV files under `bench/results`.
-It compares sorted and seeded-random insertion in BST and AVL trees, linear
-Max Heap construction, Heap Sort, and hand-written insertion and selection
-sort baselines. Tree files include final height and AVL rotation counts; heap
-files include comparisons and swaps. Full methodology and reproduction
-instructions are in `docs/bench-notes.md`.
+Reproduce from the repo root after `cmake --build build --target bench`:
+
+```powershell
+.\build\bin\bench.exe
+```
+
+Results land in `bench/results/`. Recording is off so event logs do not distort
+timings. Seeds are fixed; comparison/swap counts should match across machines.
+Wall-clock microseconds still vary a little. Full CSV column notes are in
+`docs/bench-notes.md`. No `std::sort` is used in the suite.
+
+### 7.1 Height: sorted vs random (BST vs AVL)
+
+| n | BST sorted height | AVL sorted height | BST random height | AVL random height |
+| --- | ---: | ---: | ---: | ---: |
+| 100 | 100 | 7 | 14 | 8 |
+| 1,000 | 1,000 | 10 | 21 | 12 |
+| 10,000 | 10,000 | 14 | 32 | 16 |
+
+Sorted BST degenerates into a chain (height ≈ n). AVL stays near log₂ n on the
+same input because it rotates while inserting (9,986 rotations at n = 10,000
+sorted). Random BST is shorter than sorted but still taller than AVL.
+
+### 7.2 Search cost (10,000 searches on random trees)
+
+| n | BST avg comparisons | AVL avg comparisons |
+| --- | ---: | ---: |
+| 100 | 6.53 | 5.82 |
+| 1,000 | 13.46 | 9.26 |
+| 10,000 | 17.04 | 12.61 |
+
+More height means more comparisons. AVL search stays closer to log n.
+
+### 7.3 AVL rotations (insert + delete)
+
+Sorted inserts average almost one rotation per key (~0.99). Random inserts are
+cheaper (~0.67). Deletes can spike; the worst single delete in these runs used
+up to 6 primitive rotations (random, n = 10,000).
+
+### 7.4 Order statistics (1,000 queries)
+
+| n | AVL `kth` µs | BST inorder-scan µs |
+| --- | ---: | ---: |
+| 100 | 125 | 3,897 |
+| 1,000 | 196 | 36,301 |
+| 10,000 | 208 | 539,485 |
+
+AVL `kth` uses subtree sizes (about log n). The BST baseline walks an inorder
+list per query (about n), so it blows up with n.
+
+### 7.5 Heap build and Heap Sort
+
+Bottom-up `buildMaxHeap` comparisons grow roughly linearly (random n = 10,000 →
+19,329 comparisons). Heap Sort stays O(n log n) across random / sorted /
+reverse / duplicate shapes. Against hand-written insertion and selection sort
+at n = 2,000: Heap Sort ~993 µs vs insertion ~10.4 ms vs selection ~15.9 ms.
+Heap Sort extra space is 0 (in-place); the quadratic sorts count a few
+temporaries as 1 in the CSV.

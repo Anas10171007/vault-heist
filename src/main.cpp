@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#include <optional>
 #include "gui/core/ScreenManager.h"
 #include "gui/core/Theme.h"
 
@@ -22,7 +21,8 @@ int main() {
     sf::Clock clock;
 
     while (window.isOpen()) {
-        while (const optional event = window.pollEvent()) {
+        // SFML 3 returns an optional event; auto keeps that library type out of our includes.
+        while (auto event = window.pollEvent()) {
             screenManager.handleEvent(*event, window);
             if (!window.isOpen()) break;
         }

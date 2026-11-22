@@ -36,7 +36,7 @@ void LeaderboardScreen::draw(sf::RenderWindow& window) {
     renderer.drawText("Local top scores", {550.f, 135.f}, 14, Palette::MUTED, true);
 
     if (board.size() == 0) {
-        renderer.drawText("No scores yet. Finish a mission to post one.", {550.f, 300.f}, 16,
+        renderer.drawText("No scores yet. Finish a mission or Endless run.", {550.f, 300.f}, 16,
                           Palette::MUTED, true);
     } else {
         for (int i = 0; i < board.size() && i < 10; i++) {
