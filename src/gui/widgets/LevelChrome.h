@@ -88,10 +88,33 @@ struct LevelChrome {
         renderer.drawText(failed ? "FAILED" : "on track", {960.f, 210.f}, 11,
                           failed ? Palette::VIOLATION : Palette::MUTED, false);
 
-        // One status line under the action slot — no duplicate instruction block.
-        string msg = clip(message, 34);
-        renderer.drawText(msg, {808.f, 286.f}, 12,
-                          failed ? Palette::VIOLATION : Palette::WARNING, false);
+        // Status under the action slot — wrap to two lines so tips are not cut off.
+        sf::Color statusColor = failed ? Palette::VIOLATION : Palette::WARNING;
+        string rest = message;
+        float y = 278.f;
+        for (int line = 0; line < 2 && !rest.empty(); line++) {
+            string piece;
+            if (static_cast<int>(rest.size()) <= 36) {
+                piece = rest;
+                rest.clear();
+            } else if (line == 1) {
+                piece = clip(rest, 36);
+                rest.clear();
+            } else {
+                int cut = 36;
+                for (int i = 35; i >= 18; i--) {
+                    if (rest[static_cast<size_t>(i)] == ' ') {
+                        cut = i;
+                        break;
+                    }
+                }
+                piece = rest.substr(0, static_cast<size_t>(cut));
+                rest = rest.substr(static_cast<size_t>(cut));
+                while (!rest.empty() && rest[0] == ' ') rest.erase(0, 1);
+            }
+            renderer.drawText(piece, {808.f, y}, 12, statusColor, false);
+            y += 16.f;
+        }
     }
 
     void drawEventLog(Renderer& renderer, const EventLog& log, int highlightIndex) const {

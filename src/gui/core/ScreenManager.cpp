@@ -1,7 +1,6 @@
 #include "gui/core/ScreenManager.h"
 #include "game/SaveManager.h"
 #include "gui/screens/StubScreen.h"
-#include "gui/screens/HeapLevelScreen.h"
 #include "gui/screens/CampaignScreen.h"
 #include "gui/screens/BriefingScreen.h"
 #include "gui/screens/LevelScreen.h"
@@ -29,8 +28,8 @@ ScreenManager::ScreenManager(Theme& theme) {
     menu->addButton("Quit", ScreenId::QUIT);
     screens[ScreenId::MENU] = menu;
 
-    // Keep Arslan campaign/result/sandbox shell (Act 4 + save). Anas LevelPlayScreen
-    // / CampaignMapScreen are on the branch for Acts 1-3 UI polish next.
+    // Campaign shell is ours. Acts 1–3 call Anas's LevelPlay through TreeMissionScreen.
+    // Act 4 stays on HeapLevelScreen.
     screens[ScreenId::CAMPAIGN_MAP] = new CampaignScreen(theme, session);
     screens[ScreenId::BRIEFING] = new BriefingScreen(theme, session);
     screens[ScreenId::LEVEL_PLAY] = new LevelScreen(theme, session);

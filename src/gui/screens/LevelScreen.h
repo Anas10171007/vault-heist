@@ -1,12 +1,10 @@
 #pragma once
 #include "game/GameSession.h"
 #include "game/LevelManager.h"
-#include "game/LevelPlay.h"
 #include "gui/core/Screen.h"
 #include "gui/core/Theme.h"
 #include "gui/screens/HeapLevelScreen.h"
-#include "gui/widgets/LevelChrome.h"
-#include "model/EventLog.h"
+#include "gui/screens/TreeMissionScreen.h"
 
 namespace vh {
 class LevelScreen : public Screen {
@@ -22,19 +20,12 @@ private:
     GameSession& session;
     LevelManager levels;
     HeapLevelScreen heapScreen;
-    LevelChrome chrome;
-    LevelPlay* logic;
-    EventLog lastEvents;
+    TreeMissionScreen mission;
     bool heapMode;
+    bool treeMode;
     string message;
-    float viewZoom;
-    float viewX;
-    float viewY;
-    bool dragging;
-    sf::Vector2i lastDragPixel;
-    void applyNext();
-    void undo();
-    void showHint();
+
     void storeResult(const ScoreSystem& score);
+    void prepareTreeLevel(const LevelDef& level);
 };
 }
