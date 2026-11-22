@@ -169,7 +169,7 @@ void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth
         }
     }
 
-    renderer.drawText("ARRAY", {arrayOrigin.x, arrayOrigin.y - 28.f},
+    renderer.drawText("ARRAY", {arrayOrigin.x, arrayOrigin.y - 64.f},
                       13, Palette::MUTED, false);
 
     sf::Vector2f arrayFirst;
@@ -189,7 +189,7 @@ void HeapView::draw(Renderer& renderer, sf::Vector2f treeOrigin, float treeWidth
             sf::Vector2f labelPosition = arrayPosition(index, arrayOrigin,
                                                        cellsPerRow, gap);
             renderer.drawText(region == CellRegion::ACTIVE ? "ACTIVE HEAP" : "SORTED",
-                              {labelPosition.x, labelPosition.y - 36.f},
+                              {labelPosition.x, labelPosition.y - 14.f},
                               11, Palette::MUTED, true);
             previousRow = row;
             previousRegion = region;

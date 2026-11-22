@@ -42,6 +42,64 @@ All paths below are relative to the repository root:
 | `.\build\bin\renderdemo.exe` | Renderer demo. |
 | `.\build\bin\heapviewdemo.exe` | Heap tree + array view demo. |
 | `.\build\bin\treeanimdemo.exe` | Tree animation demo; `--smoke` opens, plays one insert, saves a PNG and closes. |
+| `.\build\bin\levelsmoke.exe` | Logic smoke run of every level (`--logic` for a windowless check). |
+
+## How to play
+
+### Tree levels (Acts 1–3)
+
+- **Clicking the tree:** rooms/nodes are played by clicking them.
+  Traversal levels expect clicks in the traversal order (pre, in, post or
+  level); a win is when the click sequence equals the traversal.
+  Search levels (2.x) navigate left or right at each room to find the target;
+  the alarm counts comparisons. Act 2's 2.4 is a range query `[lo, hi]` —
+  skipped subtrees grey out and the score rewards pruning.
+- **Token placement (1.2, 1.4–1.5):** drag the room tokens into tree slots
+  using pre + in (and post + in); the built tree must equal the hidden tree.
+  Select two rooms for an LCA check and trace the path (1.4). 1.5 mirrors the
+  vault by swapping children bottom-up (or **Auto**).
+- **Enter:** type digits, then Enter submits the numeric answer.
+- **Hint:** `H` — model-computed hint; using a hint caps the result at two
+  stars.
+- **Undo:** `Z`. **Reset:** `R`. **Space / Left / Right** play/pause and step
+  the event animation.
+- **Esc:** back to the Campaign Map.
+- **3.x:** Act 3's AVL levels show balance badges (green for −1, 0, 1, red for
+  a violation); click all unbalanced rooms. Manual repair uses named pivots:
+  LL and RR by dragging a pivot and selecting Rotate Left/Right, LR and RL by
+  naming the case then performing both rotations. 3.4 is the auto-repair vault
+  that repairs itself with animation. 3.5 steals the k-th most valuable
+  treasure using subtree sizes.
+- **2.3:** the player first picks the case (leaf, one child, two children),
+  then the two-child case highlights the inorder successor and shows the value
+  swap.
+
+### Endless
+
+A seeded stream of mixed inserts and deletes on an AVL; the tree must stay
+valid. The run ends when the validator rejects the tree, or after 25
+operations (`MAX_OPS`). Ops apply on a ramping timer: the interval starts at
+1.6 s and shortens by 30 ms per operation, floored at 0.5 s. **Enter** inserts
+a typed value (20–90). Scores are kept in memory only — they are not saved to
+any persistent leaderboard.
+
+### Sandbox
+
+A free-form toolbox over the tree structures. `Structure` cycles through
+**Binary Tree → BST → AVL → Max Heap**.
+
+- **Binary Tree / BST / AVL:** Insert, Delete, Search, and (for BST/AVL)
+  Range; AVL adds Rotate L/R; Random and Clear are available in all tree modes.
+- **Max Heap:** Insert, Extract (extracts the max), and **Build Max Heap**.
+  There is no separate Heapify/Heap Sort button — that behavior is covered in
+  Act 4.
+
+### Known limitations
+
+- No level locks: the Campaign shows every mission open (Acts 1–4).
+- Endless runs are not saved anywhere — scores live in memory only.
+- Manual AVL rotations are instant (no detailed animation); the replay
+  scrubber exists only on Act 4's heap screen.
 
 ## Controls
 

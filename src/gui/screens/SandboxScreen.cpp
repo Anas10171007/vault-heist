@@ -15,7 +15,7 @@ void SandboxScreen::onShow() {
     message = "Click a field, type a number, Enter inserts.";
 }
 
-sf::FloatRect SandboxScreen::structureButton() const { return {{800.f, 48.f}, {260.f, 34.f}}; }
+sf::FloatRect SandboxScreen::structureButton() const { return {{800.f, 60.f}, {260.f, 34.f}}; }
 sf::FloatRect SandboxScreen::valueField() const { return {{800.f, 96.f}, {260.f, 36.f}}; }
 sf::FloatRect SandboxScreen::insertButton() const { return {{800.f, 148.f}, {120.f, 32.f}}; }
 sf::FloatRect SandboxScreen::removeButton() const { return {{940.f, 148.f}, {120.f, 32.f}}; }
@@ -411,7 +411,7 @@ void SandboxScreen::draw(sf::RenderWindow& window) {
     string msg = message;
     if (msg.size() > 42) msg = msg.substr(0, 41) + "…";
     renderer.drawText(msg, {804.f, 360.f}, 12, Palette::WARNING, false);
-    renderer.drawText("Type a number, Enter inserts. Range uses it as the low end.",
+    renderer.drawText("Type a number, Enter inserts it.",
                       {804.f, 400.f}, 11, Palette::MUTED, false);
 
     if (heapMode) {
