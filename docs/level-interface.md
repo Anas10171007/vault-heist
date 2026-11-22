@@ -46,6 +46,17 @@ clicks charge `PenaltyKind::WRONG_TRAVERSAL` (+1 alarm); wrong rotations charge
 `PenaltyKind::WRONG_ROTATION` (+2 alarm, -50 points); a hint charges
 `PenaltyKind::HINT` and caps the result at two stars.
 
+## Undo snapshots
+
+`captureSnapshot()` / `restoreSnapshot()` are additive members of `LevelPlay`.
+A snapshot stores the live tree with its node ids, every stored height/size, the
+full `ScoreSystem` state and the level's progress counters. Restoring rewires
+the existing nodes (recreating a deleted node with its original id when needed)
+instead of rebuilding from the definition, so ids, animation targets, alarm,
+steps and penalties all return to the saved state exactly. `restart()` resets a
+level and clears the recorded action history. This is what the screen's Undo
+button and `Z` key use.
+
 ## Act-specific notes
 
 - **Act 1:** `answer(value)` is used for the height/diameter and LCA/path

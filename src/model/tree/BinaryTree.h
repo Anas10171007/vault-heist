@@ -9,6 +9,18 @@
 
 namespace vh {
 
+// A structural snapshot of the live tree, including node ids and the
+// type-specific extras (height and size for AVL nodes).
+struct TreeSnapshot {
+    DynArray<int> ids;
+    DynArray<int> values;
+    DynArray<int> leftIds;
+    DynArray<int> rightIds;
+    DynArray<int> extraA;
+    DynArray<int> extraB;
+    int rootId = 0;
+};
+
 class BinaryTree {
 public:
     struct TraversalResult {
@@ -77,7 +89,13 @@ public:
     TreeNode* findByValue(int value) const;
     bool swapChildren(int nodeId);
 
+    TreeSnapshot captureTree() const;
+    void restoreTree(const TreeSnapshot& snapshot);
+
 protected:
+    virtual void captureExtras(const TreeNode* node, int& first, int& second) const;
+    virtual void applyExtras(TreeNode* node, int first, int second);
+
     TreeNode* rootNode;
     IdSource idSource;
     bool recording;

@@ -204,10 +204,31 @@ void TreeAnimationView::drawEventDecorations(Renderer& renderer,
     }
 }
 
+TreeLayout TreeAnimationView::currentLayout() const {
+    return motion.eventCount() == 0 ? motion.finalLayout()
+                                    : motion.frameAt(activeIndex, activeProgress);
+}
+
+bool TreeAnimationView::pickNode(sf::Vector2f worldPoint, int& nodeId) const {
+    TreeLayout frame = currentLayout();
+    for (int i = 0; i < frame.size(); i++) {
+        ScreenPoint point = pointFor(frame.at(i).nodeId, frame);
+        float dx = point.x - worldPoint.x;
+        float dy = point.y - worldPoint.y;
+        if (dx * dx + dy * dy <= Renderer::NODE_HIT_RADIUS * Renderer::NODE_HIT_RADIUS) {
+            nodeId = frame.at(i).nodeId;
+            return true;
+        }
+    }
+    return false;
+}
+
 void TreeAnimationView::draw(Renderer& renderer) const {
     TreeLayout frame = motion.eventCount() == 0 ? motion.finalLayout()
                                                  : motion.frameAt(activeIndex, activeProgress);
-    renderer.drawText(eventName(activeEvent.type), {originX, 18.f}, 16, Palette::TEXT, false);
+    if (showEventLabel) {
+        renderer.drawText(eventName(activeEvent.type), {originX, 18.f}, 16, Palette::TEXT, false);
+    }
     drawEdges(renderer, frame);
     for (int i = 0; i < frame.size(); i++) {
         int id = frame.at(i).nodeId;

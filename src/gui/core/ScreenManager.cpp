@@ -29,6 +29,8 @@ ScreenManager::ScreenManager(Theme& theme) {
     menu->addButton("Quit", ScreenId::QUIT);
     screens[ScreenId::MENU] = menu;
 
+    // Keep Arslan campaign/result/sandbox shell (Act 4 + save). Anas LevelPlayScreen
+    // / CampaignMapScreen are on the branch for Acts 1-3 UI polish next.
     screens[ScreenId::CAMPAIGN_MAP] = new CampaignScreen(theme, session);
     screens[ScreenId::BRIEFING] = new BriefingScreen(theme, session);
     screens[ScreenId::LEVEL_PLAY] = new LevelScreen(theme, session);

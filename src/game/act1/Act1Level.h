@@ -14,6 +14,8 @@ public:
     PlayResult apply(const PlayerAction& action) override;
     PlayResult hint() override;
     bool undo() override;
+    LevelSnapshot captureSnapshot() const override;
+    void restoreSnapshot(const LevelSnapshot& snapshot) override;
     PlayerAction nextAction() const override;
     int optimalSteps() const override;
     bool isComplete() const override;
@@ -23,6 +25,9 @@ public:
     const LevelDef& definition() const override;
 
 private:
+    void restoreModelTree(const TreeSnapshot& snapshot) override;
+    void restoreScore(const ScoreSnapshot& snapshot) override;
+
     void buildInitialTree();
     void computePlan();
     bool sameAction(const PlayerAction& first, const PlayerAction& second) const;

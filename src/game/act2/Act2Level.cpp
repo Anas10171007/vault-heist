@@ -188,6 +188,7 @@ void Act2Level::advanceBossStage() {
 }
 
 PlayResult Act2Level::apply(const PlayerAction& action) {
+    recordAction(action);
     PlayResult result;
     if (complete || scoring.isFailed()) {
         result.wrong = true;
@@ -274,12 +275,37 @@ PlayResult Act2Level::apply(const PlayerAction& action) {
 }
 
 PlayResult Act2Level::hint() {
+    recordHint();
     PlayResult result;
     scoring.addPenalty(PenaltyKind::HINT);
     result.hasHint = true;
     result.hintAction = nextAction();
     result.message = "hint used: three stars are no longer available";
     return result;
+}
+
+LevelSnapshot Act2Level::captureSnapshot() const {
+    LevelSnapshot snapshot = LevelPlay::captureSnapshot();
+    snapshot.state.push(progress);
+    snapshot.state.push(stage);
+    snapshot.state.push(complete ? 1 : 0);
+    return snapshot;
+}
+
+void Act2Level::restoreSnapshot(const LevelSnapshot& snapshot) {
+    LevelPlay::restoreSnapshot(snapshot);
+    if (snapshot.state.size() < 3) return;
+    progress = snapshot.state[0];
+    stage = snapshot.state[1];
+    complete = snapshot.state[2] != 0;
+}
+
+void Act2Level::restoreModelTree(const TreeSnapshot& snapshot) {
+    treeModel.restoreTree(snapshot);
+}
+
+void Act2Level::restoreScore(const ScoreSnapshot& snapshot) {
+    scoring.restoreState(snapshot);
 }
 
 int Act2Level::optimalSteps() const { return optimal; }

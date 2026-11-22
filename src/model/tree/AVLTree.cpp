@@ -100,6 +100,19 @@ AVLNode* AVLTree::rotateRightAt(AVLNode* pivot, int rotationType, EventLog& even
     return rising;
 }
 
+void AVLTree::captureExtras(const TreeNode* node, int& first, int& second) const {
+    const AVLNode* avl = asAVL(node);
+    first = avl == nullptr ? 1 : avl->height;
+    second = avl == nullptr ? 1 : avl->size;
+}
+
+void AVLTree::applyExtras(TreeNode* node, int first, int second) {
+    AVLNode* avl = asAVL(node);
+    if (avl == nullptr) return;
+    avl->height = first;
+    avl->size = second;
+}
+
 void AVLTree::afterInsert(BSTNode* inserted, EventLog& events) {
     rotationsLast = 0;
     rebalanceFrom(asAVL(inserted->parent), events);

@@ -230,6 +230,7 @@ bool Act1Level::placementCompletesTree() const {
 }
 
 PlayResult Act1Level::apply(const PlayerAction& action) {
+    recordAction(action);
     PlayResult result;
     if (complete || scoring.isFailed()) {
         result.wrong = true;
@@ -270,7 +271,21 @@ PlayResult Act1Level::apply(const PlayerAction& action) {
     if (task == "traversal_click") {
         events.append(Event(EventType::VISIT, action.id));
         progress++;
-        return accept("room visited in the right order", events);
+        if (progress >= expected.size()) {
+            return accept("room visited in the right order", events);
+        }
+        scoring.addStep();
+        if (scoring.isFailed()) {
+            result.correct = true;
+            result.lost = true;
+            result.message = "alarm capacity reached";
+            result.events.extend(events);
+            return result;
+        }
+        result.correct = true;
+        result.message = "room visited in the right order";
+        result.events.extend(events);
+        return result;
     }
     if (task == "reconstruct") {
         placed[action.slot] = action.value;
@@ -318,12 +333,39 @@ PlayResult Act1Level::apply(const PlayerAction& action) {
 }
 
 PlayResult Act1Level::hint() {
+    recordHint();
     PlayResult result;
     scoring.addPenalty(PenaltyKind::HINT);
     result.hasHint = true;
     result.hintAction = nextAction();
     result.message = "hint used: three stars are no longer available";
     return result;
+}
+
+LevelSnapshot Act1Level::captureSnapshot() const {
+    LevelSnapshot snapshot = LevelPlay::captureSnapshot();
+    snapshot.state.push(progress);
+    snapshot.state.push(stage);
+    snapshot.state.push(complete ? 1 : 0);
+    snapshot.arrays.push(placed);
+    return snapshot;
+}
+
+void Act1Level::restoreSnapshot(const LevelSnapshot& snapshot) {
+    LevelPlay::restoreSnapshot(snapshot);
+    if (snapshot.state.size() < 3) return;
+    progress = snapshot.state[0];
+    stage = snapshot.state[1];
+    complete = snapshot.state[2] != 0;
+    placed = snapshot.arrays[0];
+}
+
+void Act1Level::restoreModelTree(const TreeSnapshot& snapshot) {
+    treeModel.restoreTree(snapshot);
+}
+
+void Act1Level::restoreScore(const ScoreSnapshot& snapshot) {
+    scoring.restoreState(snapshot);
 }
 
 int Act1Level::optimalSteps() const { return optimal; }

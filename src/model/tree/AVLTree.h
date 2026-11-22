@@ -29,6 +29,8 @@ public:
 
 protected:
     TreeNode* createNode(int value) override;
+    void captureExtras(const TreeNode* node, int& first, int& second) const override;
+    void applyExtras(TreeNode* node, int first, int second) override;
     void afterInsert(BSTNode* inserted, EventLog& events) override;
     void afterRemoval(BSTNode* parentOfRemoved, EventLog& events) override;
 

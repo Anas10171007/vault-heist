@@ -21,10 +21,13 @@ public:
     void setModel(const BinaryTree& tree) { model = &tree; }
     void setMotion(const TreeMotion& script) { motion = script; }
     void setOrigin(float x, float y) { originX = x; originY = y; }
+    void setShowEventLabel(bool enabled) { showEventLabel = enabled; }
 
     void reset() override;
     void onEvent(const Event& event, float progress) override;
     void draw(Renderer& renderer) const;
+    bool pickNode(sf::Vector2f worldPoint, int& nodeId) const;
+    TreeLayout currentLayout() const;
 
 private:
     struct ScreenPoint {
@@ -49,6 +52,7 @@ private:
     int activeIndex = -1;
     Event activeEvent;
     float activeProgress = 0.f;
+    bool showEventLabel = true;
 };
 
 }
