@@ -20,14 +20,15 @@ ScreenManager::ScreenManager(Theme& theme) {
 
     SaveManager::loadProgress(session);
 
-    StubScreen* menu = new StubScreen(theme, "Vault Heist",
-                                      "Breach the living vault. Trees, heaps, one alarm.");
-    menu->addButton("Campaign", ScreenId::CAMPAIGN_MAP);
-    menu->addButton("Endless", ScreenId::ENDLESS);
-    menu->addButton("Sandbox", ScreenId::SANDBOX);
-    menu->addButton("Leaderboard", ScreenId::LEADERBOARD);
-    menu->addButton("Settings", ScreenId::SETTINGS);
-    menu->addButton("Quit", ScreenId::QUIT);
+    StubScreen* menu = new StubScreen(theme, "Vault Heist", "Trees. Heaps. Zero chill.");
+    menu->addButton("Start the Heist", "Campaign: 20 levels, 4 acts, one very annoying alarm",
+                    ScreenId::CAMPAIGN_MAP);
+    menu->addButton("Endless Chaos", "survive the stream of inserts and deletes",
+                    ScreenId::ENDLESS);
+    menu->addButton("Sandbox: Break Stuff", "any tree, any operation", ScreenId::SANDBOX);
+    menu->addButton("Hall of Fame", "Leaderboard: your best scores", ScreenId::LEADERBOARD);
+    menu->addButton("Settings", "speed, hints, and comfort", ScreenId::SETTINGS);
+    menu->addButton("Bounce", "quit while you're ahead", ScreenId::QUIT);
     screens[ScreenId::MENU] = menu;
 
     // Campaign shell is ours. Acts 1–3 call Anas's LevelPlay through TreeMissionScreen.

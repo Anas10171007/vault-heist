@@ -12,6 +12,7 @@ class StubScreen : public Screen {
 public:
     StubScreen(Theme& theme, const string& title, const string& description);
     void addButton(const string& label, int targetScreen);
+    void addButton(const string& label, const string& sublabel, int targetScreen);
     int handleEvent(const sf::Event& event, sf::RenderWindow& window) override;
     int update(float deltaSeconds) override;
     void draw(sf::RenderWindow& window) override;
@@ -19,6 +20,7 @@ public:
 private:
     struct NavigationButton {
         string label;
+        string sublabel;
         int targetScreen;
     };
 
