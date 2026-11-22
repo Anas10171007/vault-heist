@@ -50,41 +50,58 @@ int CampaignScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window
 }
 
 void CampaignScreen::draw(sf::RenderWindow& window) {
-    theme.drawBackdrop(window);
+    theme.drawVaultBackdrop(window);
     Renderer renderer(window, theme.getFont());
     theme.drawPanel(window, {{40.f, 28.f}, {1020.f, 640.f}});
 
-    renderer.drawText("CAMPAIGN", {550.f, 52.f}, 34, Palette::BRASS, true);
+    theme.drawGlowTitle(window, "CAMPAIGN", {550.f, 52.f}, 32, Palette::BRASS, true);
     renderer.drawText("Clear a mission to unlock the next  ·  Esc / Backspace: menu",
-                      {550.f, 92.f}, 13, Palette::MUTED, true);
+                      {550.f, 92.f}, 12, Palette::MUTED, true);
 
     if (!loaded) {
         renderer.drawText("Could not load level data", {550.f, 330.f}, 20, Palette::VIOLATION, true);
         return;
     }
 
-    const char* actNames[4] = {"ACT 1  Binary", "ACT 2  BST", "ACT 3  AVL", "ACT 4  Heap"};
+    const char* actNames[4] = {"ACT 1 · BINARY BLUEPRINT", "ACT 2 · BST VAULT",
+                               "ACT 3 · AVL FORTRESS", "ACT 4 · HEAP FORTRESS"};
+    const char* actBlurbs[4] = {"read trees every which way", "sorted rooms, no duplicates",
+                                "balance or bust", "priority queue, heist edition"};
+    sf::Color actAccents[4] = {sf::Color(64, 200, 190), sf::Color(88, 196, 132),
+                               Palette::BRASS, sf::Color(232, 142, 84)};
     for (int act = 1; act <= 4; act++) {
         float x = 70.f + (act - 1) * 255.f;
-        renderer.drawText(actNames[act - 1], {x + 118.f, 124.f}, 13, Palette::VISITED, true);
+        renderer.drawText(actNames[act - 1], {x + 118.f, 118.f}, 11, actAccents[act - 1], true);
+        renderer.drawText(actBlurbs[act - 1], {x + 118.f, 133.f}, 9, Palette::MUTED, true);
     }
 
     for (int index = 0; index < levels.size(); index++) {
         const LevelDef& level = levels.at(index);
         sf::FloatRect bounds = levelBounds(index);
         bool unlocked = isUnlocked(index);
+        bool hovered = unlocked && theme.hovered(window, bounds);
         int best = session.bestStarsFor(level.id);
-        int kind = unlocked ? ButtonKind::SECONDARY : ButtonKind::GHOST;
-        if (unlocked && best >= 3) kind = ButtonKind::PRIMARY;
-        theme.drawButton(window, theme.getFont(), bounds, "", kind,
-                         unlocked && theme.hovered(window, bounds));
+        int act = level.act < 1 ? 1 : (level.act > 4 ? 4 : level.act);
+        sf::Color accent = actAccents[act - 1];
+        theme.drawCard(window, bounds, accent, hovered);
 
-        string stars;
-        for (int s = 0; s < 3; s++) stars += s < best ? "*" : ".";
-        string label = unlocked ? (level.id + "  " + stars) : (level.id + "  LOCK");
-        renderer.drawText(label, bounds.position + sf::Vector2f(12.f, 12.f), 14,
+        renderer.drawText(level.id, bounds.position + sf::Vector2f(11.f, 5.f), 10, accent,
+                          false);
+        for (int s = 0; s < 3; s++) {
+            theme.drawStar(window,
+                           {bounds.position.x + 206.f + static_cast<float>(s) * 12.f,
+                            bounds.position.y + 12.f},
+                           4.5f, s < best);
+        }
+
+        string title = theme.elide(level.title, 11, 210.f);
+        if (!unlocked) title = "LOCKED";
+        renderer.drawText(title, bounds.position + sf::Vector2f(11.f, 21.f), 11,
                           unlocked ? Palette::TEXT : Palette::MUTED, false);
     }
+
+    renderer.drawText("Gold stars mark your best run  ·  clear a mission to open the next",
+                      {550.f, 620.f}, 11, Palette::MUTED, true);
 }
 
 }

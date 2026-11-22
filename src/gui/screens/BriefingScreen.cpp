@@ -3,6 +3,24 @@
 #include "gui/core/ScreenId.h"
 #include "gui/screens/TreeMissionScreen.h"
 
+namespace {
+
+string friendlyTask(const string& task) {
+    string result;
+    for (std::size_t i = 0; i < task.size(); i++) {
+        char c = task[i];
+        if (c == '_') {
+            result += ' ';
+        } else {
+            if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 32);
+            result += c;
+        }
+    }
+    return result;
+}
+
+} // namespace
+
 namespace vh {
 BriefingScreen::BriefingScreen(Theme& sharedTheme, GameSession& sharedSession)
     : theme(sharedTheme), session(sharedSession) {
@@ -25,9 +43,9 @@ int BriefingScreen::handleEvent(const sf::Event& event, sf::RenderWindow& window
 }
 
 void BriefingScreen::draw(sf::RenderWindow& window) {
-    theme.drawBackdrop(window);
+    theme.drawVaultBackdrop(window);
     Renderer renderer(window, theme.getFont());
-    theme.drawPanel(window, {{200.f, 60.f}, {700.f, 560.f}});
+    theme.drawPanel(window, {{180.f, 40.f}, {740.f, 610.f}});
 
     const LevelDef* level = levels.load(session.selectedLevel);
     if (!level) {
@@ -35,32 +53,37 @@ void BriefingScreen::draw(sf::RenderWindow& window) {
         return;
     }
 
-    renderer.drawText("MISSION " + level->id, {550.f, 100.f}, 14, Palette::BRASS, true);
-    renderer.drawText(level->title, {550.f, 140.f}, 34, Palette::TEXT, true);
+    theme.drawChip(window, {550.f, 80.f}, "MISSION BRIEF", 10, Palette::BRASS);
+    renderer.drawText("MISSION " + level->id, {550.f, 108.f}, 11, Palette::MUTED, true);
+    theme.drawGlowTitle(window, level->title, {550.f, 140.f}, 28, Palette::BRASS, true);
 
-    sf::RectangleShape rule({160.f, 2.f});
-    rule.setPosition({470.f, 188.f});
-    rule.setFillColor(Palette::VISITED);
-    window.draw(rule);
+    theme.drawCard(window, {{230.f, 176.f}, {640.f, 124.f}}, Palette::VISITED, false);
+    theme.drawWrappedText(window, level->mission, {550.f, 238.f}, 14, Palette::TEXT, 590.f,
+                          20.f, 5);
 
     string objective = TreeMissionScreen::objectiveFor(*level);
-    renderer.drawText(objective, {550.f, 214.f}, 16, Palette::TEXT, true);
     if (objective != level->mission) {
-        renderer.drawText(level->mission, {550.f, 246.f}, 13, Palette::MUTED, true);
+        renderer.drawText(theme.elide(objective, 12, 640.f), {550.f, 316.f}, 12,
+                          Palette::MUTED, true);
     }
-    renderer.drawText("Structure   " + level->structure, {550.f, 290.f}, 16, Palette::TEXT, true);
-    renderer.drawText("Operation   " + level->task, {550.f, 322.f}, 16, Palette::TEXT, true);
 
+    theme.drawChip(window, {550.f, 344.f}, "CONCEPT · " + friendlyTask(level->task), 10,
+                   Palette::VISITED);
+    renderer.drawText("Structure  ·  " + level->structure, {550.f, 374.f}, 12,
+                      Palette::TEXT, true);
+
+    renderer.drawText("BEST RUN", {470.f, 406.f}, 10, Palette::MUTED, true);
     int best = session.bestStarsFor(level->id);
-    string stars;
-    for (int i = 0; i < 3; i++) stars += i < best ? "* " : ". ";
-    renderer.drawText("Best  " + stars, {550.f, 370.f}, 18, Palette::BRASS, true);
-    renderer.drawText("3 stars: optimal steps, no penalties, no hints", {550.f, 410.f}, 13,
+    for (int i = 0; i < 3; i++) {
+        theme.drawStar(window, {550.f + static_cast<float>(i - 1) * 30.f, 406.f}, 8.f,
+                       i < best);
+    }
+    renderer.drawText("3 stars: optimal steps, no penalties, no hints", {550.f, 436.f}, 11,
                       Palette::MUTED, true);
 
-    theme.drawButton(window, theme.getFont(), startButton(), "Start Mission  [Enter]",
-                     ButtonKind::PRIMARY, theme.hovered(window, startButton()));
-    theme.drawButton(window, theme.getFont(), backButton(), "Back to Campaign",
-                     ButtonKind::GHOST, theme.hovered(window, backButton()));
+    theme.drawGlossyButton(window, theme.getFont(), startButton(), "Let's go  [Enter]",
+                           ButtonKind::PRIMARY, theme.hovered(window, startButton()));
+    theme.drawGlossyButton(window, theme.getFont(), backButton(), "Back to map",
+                           ButtonKind::GHOST, theme.hovered(window, backButton()));
 }
 }
